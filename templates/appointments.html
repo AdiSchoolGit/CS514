@@ -20,6 +20,13 @@
     <p>{{ item.location }} · {{ item.visit_type|visit_label }}</p>
     {% if item.prep_notes %}<p>{{ item.prep_notes }}</p>{% endif %}
     {% if item.status == 'scheduled' %}
+    <form method="post" action="{{ url_for('reschedule_appointment', appointment_id=item.id) }}">
+      <div class="field">
+        <label for="reschedule-{{ item.id }}">New date and time</label>
+        <input id="reschedule-{{ item.id }}" name="starts_at" type="datetime-local" value="{{ item.starts_at[:16]|replace(' ', 'T') }}" required>
+      </div>
+      <button class="button" type="submit">Reschedule</button>
+    </form>
     <form method="post" action="{{ url_for('cancel_appointment', appointment_id=item.id) }}">
       <button class="button button-danger" type="submit">Cancel appointment</button>
     </form>

@@ -179,6 +179,9 @@
           <p class="record-title">{{ note.title }}</p>
           <p>{{ note.body }}</p>
           <p class="meta"><span class="badge badge-{{ note.severity }}">{{ note.severity|label }}</span> · {{ note.created_at|when }}</p>
+          <form method="post" action="{{ url_for('dismiss_notification', notification_id=note.id) }}">
+            <button class="button" type="submit">Dismiss</button>
+          </form>
         </li>
         {% endfor %}
       </ul>

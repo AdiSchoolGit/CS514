@@ -1,0 +1,5 @@
+care_overview.db
+.venv/
+__pycache__/
+.pytest_cache/
+.env

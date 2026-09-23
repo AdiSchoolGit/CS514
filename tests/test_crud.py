@@ -210,3 +210,79 @@ def test_review_rolls_back_when_task_insert_fails(client, app):
     conn.close()
     assert status == "new"
     assert note == "open"
+
+
+def test_reschedule_appointment(client, app):
+    conn = connect(app)
+    appointment_id = conn.execute(
+        "SELECT id FROM appointments WHERE status = 'scheduled' ORDER BY id LIMIT 1"
+    ).fetchone()["id"]
+    conn.close()
+
+    response = client.post(
+        f"/appointments/{appointment_id}/reschedule",
+        data={"starts_at": "2026-12-15T14:30"},
+        follow_redirects=True,
+    )
+    assert "Appointment rescheduled." in response.get_data(as_text=True)
+
+    conn = connect(app)
+    starts_at = conn.execute(
+        "SELECT starts_at FROM appointments WHERE id = ?",
+        (appointment_id,),
+    ).fetchone()["starts_at"]
+    conn.close()
+    assert starts_at == "2026-12-15 14:30:00"
+
+
+def test_reschedule_rejects_bad_date_and_past_visits(client, app):
+    conn = connect(app)
+    scheduled_id = conn.execute(
+        "SELECT id FROM appointments WHERE status = 'scheduled' ORDER BY id LIMIT 1"
+    ).fetchone()["id"]
+    completed_id = conn.execute(
+        "SELECT id FROM appointments WHERE status = 'completed' ORDER BY id LIMIT 1"
+    ).fetchone()["id"]
+    conn.close()
+
+    bad = client.post(
+        f"/appointments/{scheduled_id}/reschedule",
+        data={"starts_at": "not a date"},
+        follow_redirects=True,
+    )
+    assert "Enter a valid date and time." in bad.get_data(as_text=True)
+
+    done = client.post(
+        f"/appointments/{completed_id}/reschedule",
+        data={"starts_at": "2026-12-15T14:30"},
+        follow_redirects=True,
+    )
+    assert "Only scheduled appointments can be rescheduled." in done.get_data(as_text=True)
+
+    missing = client.post("/appointments/9999/reschedule", data={"starts_at": "2026-12-15T14:30"})
+    assert missing.status_code == 404
+
+
+def test_dismiss_notification_updates_count(client, app):
+    conn = connect(app)
+    before = conn.execute(
+        "SELECT open_notification_count FROM care_overview_view WHERE patient_id = 1"
+    ).fetchone()[0]
+    conn.close()
+
+    response = client.post("/notifications/1/dismiss", follow_redirects=True)
+    assert "Notification dismissed." in response.get_data(as_text=True)
+
+    conn = connect(app)
+    notice = conn.execute("SELECT status, dismissed_at FROM notifications WHERE id = 1").fetchone()
+    after = conn.execute(
+        "SELECT open_notification_count FROM care_overview_view WHERE patient_id = 1"
+    ).fetchone()[0]
+    conn.close()
+    assert notice["status"] == "dismissed"
+    assert notice["dismissed_at"] is not None
+    assert after == before - 1
+
+    again = client.post("/notifications/1/dismiss", follow_redirects=True)
+    assert "Notification is already dismissed." in again.get_data(as_text=True)
+    assert client.post("/notifications/9999/dismiss").status_code == 404

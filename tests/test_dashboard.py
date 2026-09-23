@@ -17,6 +17,8 @@ PLANNED_ROUTES = {
     "POST /results/<result_id>/review",
     "GET /medications/<patient_id>",
     "GET /api/care-overview/<patient_id>",
+    "POST /appointments/<appointment_id>/reschedule",
+    "POST /notifications/<notification_id>/dismiss",
 }
 
 
@@ -27,6 +29,7 @@ def normalize(rule):
         "<int:task_id>": "<task_id>",
         "<int:message_id>": "<message_id>",
         "<int:result_id>": "<result_id>",
+        "<int:notification_id>": "<notification_id>",
     }
     for src, dest in replacements.items():
         rule = rule.replace(src, dest)

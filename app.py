@@ -50,6 +50,7 @@ KNOWN_MISSING = {
     "Task not found.",
     "Message not found.",
     "Result not found.",
+    "Notification not found.",
 }
 
 
@@ -277,6 +278,22 @@ def create_app(db_path=None):
             flash("Appointment cancelled.", "success")
         return redirect(url_for("appointments", patient_id=appointment["patient_id"]))
 
+    @app.post("/appointments/<int:appointment_id>/reschedule")
+    def reschedule_appointment(appointment_id):
+        existing = db.get_appointment(appointment_id)
+        if existing is None:
+            abort(404, description="Appointment not found.")
+        starts_at = normalize_datetime(request.form.get("starts_at"))
+        if starts_at is None:
+            flash("Enter a valid date and time.", "error")
+            return redirect(url_for("appointments", patient_id=existing["patient_id"]))
+        _, outcome = db.reschedule_appointment(appointment_id, starts_at)
+        if outcome == "not_scheduled":
+            flash("Only scheduled appointments can be rescheduled.", "error")
+        else:
+            flash("Appointment rescheduled.", "success")
+        return redirect(url_for("appointments", patient_id=existing["patient_id"]))
+
     @app.get("/tasks/<int:patient_id>")
     def tasks(patient_id):
         patient = require_patient(patient_id)
@@ -409,6 +426,17 @@ def create_app(db_path=None):
             patient=patient,
             medications=db.list_medications(patient_id),
         )
+
+    @app.post("/notifications/<int:notification_id>/dismiss")
+    def dismiss_notification(notification_id):
+        notice, outcome = db.dismiss_notification(notification_id)
+        if notice is None:
+            abort(404, description="Notification not found.")
+        if outcome == "already":
+            flash("Notification is already dismissed.", "error")
+        else:
+            flash("Notification dismissed.", "success")
+        return redirect(url_for("dashboard", patient_id=notice["patient_id"]))
 
     @app.get("/api/care-overview/<int:patient_id>")
     def care_overview_api(patient_id):

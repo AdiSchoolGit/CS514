@@ -776,6 +776,7 @@ GET /dashboard/<patient_id>
 GET /appointments/<patient_id>
 POST /appointments
 POST /appointments/<appointment_id>/cancel
+POST /appointments/<appointment_id>/reschedule
 ```
 
 ### Task Routes
@@ -799,6 +800,12 @@ POST /messages/<message_id>/read
 ```text
 GET /results/<patient_id>
 POST /results/<result_id>/review
+```
+
+### Notification Routes
+
+```text
+POST /notifications/<notification_id>/dismiss
 ```
 
 ### Medication Routes

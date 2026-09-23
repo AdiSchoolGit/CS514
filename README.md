@@ -68,6 +68,7 @@ GET /dashboard/<patient_id>
 GET /appointments/<patient_id>
 POST /appointments
 POST /appointments/<appointment_id>/cancel
+POST /appointments/<appointment_id>/reschedule
 GET /tasks/<patient_id>
 POST /tasks
 POST /tasks/<task_id>/complete
@@ -76,6 +77,7 @@ GET /messages/<patient_id>
 POST /messages/<message_id>/read
 GET /results/<patient_id>
 POST /results/<result_id>/review
+POST /notifications/<notification_id>/dismiss
 GET /medications/<patient_id>
 GET /api/care-overview/<patient_id>
 ```

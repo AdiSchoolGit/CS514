@@ -359,6 +359,19 @@ def cancel_appointment(appointment_id):
     return appointment, "cancelled"
 
 
+def reschedule_appointment(appointment_id, starts_at):
+    appointment = get_appointment(appointment_id)
+    if appointment is None:
+        return None, "missing"
+    if appointment["status"] != "scheduled":
+        return appointment, "not_scheduled"
+    execute(
+        "UPDATE appointments SET starts_at = ? WHERE id = ? AND status = 'scheduled'",
+        (starts_at, appointment_id),
+    )
+    return appointment, "rescheduled"
+
+
 def list_messages(patient_id):
     return fetch_all(
         """
@@ -534,13 +547,34 @@ def active_referrals(patient_id):
 def open_notifications(patient_id):
     return fetch_all(
         """
-        SELECT title, body, severity, created_at
+        SELECT id, title, body, severity, created_at
         FROM notifications
         WHERE patient_id = ? AND status = 'open'
         ORDER BY created_at DESC
         """,
         (patient_id,),
     )
+
+
+def get_notification(notification_id):
+    return fetch_one("SELECT * FROM notifications WHERE id = ?", (notification_id,))
+
+
+def dismiss_notification(notification_id):
+    notice = get_notification(notification_id)
+    if notice is None:
+        return None, "missing"
+    if notice["status"] != "open":
+        return notice, "already"
+    execute(
+        """
+        UPDATE notifications
+        SET status = 'dismissed', dismissed_at = datetime('now', 'localtime')
+        WHERE id = ? AND status = 'open'
+        """,
+        (notification_id,),
+    )
+    return notice, "dismissed"
 
 
 def quick_links(patient_id):

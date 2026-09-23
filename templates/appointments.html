@@ -10,15 +10,16 @@
 <ul class="records">
   {% for item in appointments %}
   <li class="record">
-    <p class="record-title">{{ item.reason }}</p>
-    <p class="meta">
-      {{ item.starts_at|when }}
-      · <span class="badge badge-{{ item.status }}">{{ item.status|label }}</span>
-      · <span class="badge">{{ item.check_in_status|label }}</span>
-    </p>
-    <p>{{ item.provider_name }}, {{ item.provider_role }} · {{ item.department_name }}</p>
-    <p>{{ item.location }} · {{ item.visit_type|visit_label }}</p>
-    {% if item.prep_notes %}<p>{{ item.prep_notes }}</p>{% endif %}
+    <details class="item">
+      <summary>
+        <span class="record-title">{{ item.reason }}</span>
+        <span class="badge badge-{{ item.status }}">{{ item.status|label }}</span>
+        <span class="meta">{{ item.starts_at|when }}</span>
+      </summary>
+      <p class="meta">{{ item.provider_name }}, {{ item.provider_role }} · {{ item.department_name }}</p>
+      <p class="meta">{{ item.location }} · {{ item.visit_type|visit_label }} · Check-in {{ item.check_in_status|label|lower }}</p>
+      {% if item.prep_notes %}<p>{{ item.prep_notes }}</p>{% endif %}
+    </details>
     {% if item.status == 'scheduled' %}
     <form method="post" action="{{ url_for('cancel_appointment', appointment_id=item.id) }}">
       <button class="button button-danger" type="submit">Cancel appointment</button>
@@ -31,8 +32,8 @@
 <p class="empty">No appointments yet.</p>
 {% endif %}
 
-<section class="card" aria-labelledby="add-appointment">
-  <h2 id="add-appointment">Add appointment</h2>
+<details class="card add-form" {% if errors %}open{% endif %}>
+  <summary><h2 id="add-appointment">+ Add appointment</h2></summary>
   {% if errors %}
   <ul class="form-errors" role="alert">
     {% for message in errors %}
@@ -90,5 +91,5 @@
     </div>
     <button class="button" type="submit">Add appointment</button>
   </form>
-</section>
+</details>
 {% endblock %}

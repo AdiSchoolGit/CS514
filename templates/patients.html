@@ -2,7 +2,6 @@
 {% block title %}Patients · Care Overview{% endblock %}
 {% block content %}
 <h1>Choose a patient</h1>
-<p class="intro">Open a fictional chart to see the care overview.</p>
 <ul class="patient-list">
   {% for patient in patients %}
   <li class="patient-row">
@@ -10,7 +9,6 @@
     <span class="avatar" aria-hidden="true">{{ patient.name.split()|map("first")|join }}</span>
     <div>
       <h2>{{ patient.name }}</h2>
-      <p class="meta">Born {{ patient.dob|when }} · Age {{ patient.age }}</p>
       <p class="meta">
         {% if patient.next_appointment_at %}
         Next appointment {{ patient.next_appointment_at|when }}

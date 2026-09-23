@@ -219,12 +219,11 @@ p {
   transform: translateY(-3px) rotate(-1deg);
 }
 
-.counts div:nth-child(7n + 2) { background: var(--lavender); color: var(--lavender-ink); }
-.counts div:nth-child(7n + 3) { background: var(--mint); color: var(--mint-ink); }
-.counts div:nth-child(7n + 4) { background: var(--peach); color: var(--peach-ink); }
-.counts div:nth-child(7n + 5) { background: var(--sky); color: var(--sky-ink); }
-.counts div:nth-child(7n + 6) { background: var(--butter); color: var(--butter-ink); }
-.counts div:nth-child(7n + 7) { background: #fde2f4; color: #93307a; }
+.counts .tile-lavender { background: var(--lavender); color: var(--lavender-ink); }
+.counts .tile-mint { background: var(--mint); color: var(--mint-ink); }
+.counts .tile-peach { background: var(--peach); color: var(--peach-ink); }
+.counts .tile-sky { background: var(--sky); color: var(--sky-ink); }
+.counts .tile-butter { background: var(--butter); color: var(--butter-ink); }
 
 .counts dt {
   font-size: 13px;
@@ -361,6 +360,104 @@ p {
   font-weight: 700;
   border-radius: 999px;
   padding: 2px 10px;
+}
+
+details.item > summary,
+details.more > summary,
+details.add-form > summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+details > summary::-webkit-details-marker {
+  display: none;
+}
+
+details.item > summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  padding: 4px 28px 4px 0;
+  position: relative;
+  border-radius: 12px;
+}
+
+details.item > summary .record-title {
+  margin: 0;
+}
+
+details.item > summary::after,
+details.add-form > summary::after {
+  content: "";
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-right: 2.5px solid var(--pink);
+  border-bottom: 2.5px solid var(--pink);
+  transform: translateY(-70%) rotate(45deg);
+  transition: transform 0.2s;
+}
+
+details[open].item > summary::after,
+details[open].add-form > summary::after {
+  transform: translateY(-30%) rotate(-135deg);
+}
+
+details.item > summary:hover .record-title {
+  color: var(--pink);
+}
+
+details.item[open] > :not(summary) {
+  animation: drop 0.2s ease-out;
+}
+
+details.item > p:first-of-type,
+details.item > dl {
+  margin-top: 8px;
+}
+
+@keyframes drop {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: none; }
+}
+
+details.more {
+  display: inline-block;
+}
+
+details.more > summary {
+  display: inline-block;
+  background: var(--pink-soft);
+  color: var(--rose-ink);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 3px 12px;
+  border-radius: 999px;
+}
+
+details.more[open] > summary {
+  margin-bottom: 8px;
+}
+
+details.add-form > summary {
+  position: relative;
+}
+
+details.add-form > summary h2 {
+  margin: 0;
+  color: var(--pink);
+}
+
+details.add-form[open] > summary h2 {
+  margin-bottom: 14px;
+}
+
+.card-link {
+  margin: 10px 0 0;
+  font-size: 14px;
 }
 
 .link-list li {

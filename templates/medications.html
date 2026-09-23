@@ -4,20 +4,19 @@
 <header class="page-header">
   <h1>Medications</h1>
   <p class="meta">{{ patient.name }}</p>
-  <p>Active, paused, and stopped medications are listed with the refill record on file.</p>
 </header>
 
 {% if medications %}
 <ul class="records">
   {% for item in medications %}
   <li class="record">
-    <p class="record-title">{{ item.name }}</p>
-    <p>
-      <span class="badge badge-{{ item.status }}">{{ item.status|label }}</span>
-      {% if item.dosage %} · {{ item.dosage }}{% endif %}
-      {% if item.frequency %} · {{ item.frequency }}{% endif %}
-    </p>
-    {% if item.started_at %}<p class="meta">Started {{ item.started_at|when }}</p>{% endif %}
+    <details class="item">
+    <summary>
+      <span class="record-title">{{ item.name }}</span>
+      {% if item.refill_status == 'refill_due' %}<span class="badge badge-refill_due">Refill due</span>
+      {% else %}<span class="badge badge-{{ item.status }}">{{ item.status|label }}</span>{% endif %}
+    </summary>
+    <p class="meta">{% if item.dosage %}{{ item.dosage }}{% endif %}{% if item.frequency %} · {{ item.frequency }}{% endif %}{% if item.started_at %} · Started {{ item.started_at|when }}{% endif %}</p>
     {% if item.refill_status %}
     <dl class="facts">
       <div>
@@ -46,8 +45,9 @@
       </div>
     </dl>
     {% else %}
-    <p class="empty">No refill is on file.</p>
+    <p class="meta">No refill is on file.</p>
     {% endif %}
+    </details>
   </li>
   {% endfor %}
 </ul>

@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Care Overview</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to main content</a>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Primary">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">C</div>
+          <div>
+            <p class="eyebrow">Patient portal</p>
+            <h1>Care Overview</h1>
+          </div>
+        </div>
+
+        <nav class="nav-list" aria-label="Sections">
+          <button class="nav-item is-active" type="button" data-view="overview">
+            <span aria-hidden="true">OV</span>
+            Overview
+          </button>
+          <button class="nav-item" type="button" data-view="appointments">
+            <span aria-hidden="true">AP</span>
+            Appointments
+          </button>
+          <button class="nav-item" type="button" data-view="messages">
+            <span aria-hidden="true">MS</span>
+            Messages
+          </button>
+          <button class="nav-item" type="button" data-view="results">
+            <span aria-hidden="true">RS</span>
+            Results
+          </button>
+          <button class="nav-item" type="button" data-view="medications">
+            <span aria-hidden="true">RX</span>
+            Medications
+          </button>
+          <button class="nav-item" type="button" data-view="tasks">
+            <span aria-hidden="true">TS</span>
+            Tasks
+          </button>
+        </nav>
+
+        <div class="sidebar-note">
+          <p>Demo data only</p>
+          <span id="data-source">Local frontend mode</span>
+        </div>
+      </aside>
+
+      <div class="page">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Fictional patient</p>
+            <label class="patient-picker">
+              <span class="sr-only">Select patient</span>
+              <select id="patient-select"></select>
+            </label>
+          </div>
+          <div class="topbar-actions">
+            <button class="button secondary" type="button" id="reset-demo">Reset demo</button>
+            <button class="button primary" type="button" data-jump="tasks">Add task</button>
+          </div>
+        </header>
+
+        <main id="main" class="content" tabindex="-1">
+          <div class="patient-banner">
+            <div>
+              <p class="eyebrow">Care dashboard</p>
+              <h2 id="patient-name">Loading</h2>
+              <p id="patient-context" class="muted">Loading patient information.</p>
+            </div>
+            <dl class="patient-facts" aria-label="Patient facts">
+              <div>
+                <dt>DOB</dt>
+                <dd id="patient-dob">--</dd>
+              </div>
+              <div>
+                <dt>Care team</dt>
+                <dd id="patient-team">--</dd>
+              </div>
+              <div>
+                <dt>Updated</dt>
+                <dd id="last-updated">--</dd>
+              </div>
+            </dl>
+          </div>
+
+          <section class="view is-visible" id="view-overview" aria-labelledby="overview-title">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Home</p>
+                <h2 id="overview-title">What needs attention</h2>
+              </div>
+              <p class="muted">This page summarizes records that normally live in separate portal areas.</p>
+            </div>
+
+            <div class="metric-strip" aria-label="Important update counts">
+              <article class="metric">
+                <span id="count-tasks">0</span>
+                <p>open tasks</p>
+              </article>
+              <article class="metric">
+                <span id="count-messages">0</span>
+                <p>unread messages</p>
+              </article>
+              <article class="metric">
+                <span id="count-results">0</span>
+                <p>new results</p>
+              </article>
+              <article class="metric">
+                <span id="count-referrals">0</span>
+                <p>active referrals</p>
+              </article>
+            </div>
+
+            <div class="dashboard-grid">
+              <section class="panel panel-large" aria-labelledby="recent-visit-title">
+                <div class="panel-header">
+                  <div>
+                    <p class="eyebrow">Recent visit</p>
+                    <h3 id="recent-visit-title">Visit summary</h3>
+                  </div>
+                  <span class="status neutral" id="recent-visit-date">--</span>
+                </div>
+                <div id="recent-visit"></div>
+              </section>
+
+              <section class="panel" aria-labelledby="appointment-title">
+                <div class="panel-header">
+                  <div>
+                    <p class="eyebrow">Next appointment</p>
+                    <h3 id="appointment-title">Upcoming care</h3>
+                  </div>
+                </div>
+                <div id="next-appointment"></div>
+              </section>
+
+              <section class="panel panel-large" aria-labelledby="next-steps-title">
+                <div class="panel-header">
+                  <div>
+                    <p class="eyebrow">Next steps</p>
+                    <h3 id="next-steps-title">Tasks to complete</h3>
+                  </div>
+                  <button class="text-button" type="button" data-jump="tasks">Manage tasks</button>
+                </div>
+                <div id="task-list" class="item-list"></div>
+              </section>
+
+              <section class="panel" aria-labelledby="updates-title">
+                <div class="panel-header">
+                  <div>
+                    <p class="eyebrow">Important updates</p>
+                    <h3 id="updates-title">Needs review</h3>
+                  </div>
+                </div>
+                <div id="updates-list" class="item-list"></div>
+              </section>
+            </div>
+
+            <section class="quick-access" aria-labelledby="quick-title">
+              <div>
+                <p class="eyebrow">Shortcuts</p>
+                <h3 id="quick-title">Quick access</h3>
+              </div>
+              <div class="quick-grid">
+                <button class="quick-link" type="button" data-jump="appointments">Schedule appointment</button>
+                <button class="quick-link" type="button" data-jump="messages">Message provider</button>
+                <button class="quick-link" type="button" data-jump="medications">Request refill</button>
+                <button class="quick-link" type="button" data-jump="results">View results</button>
+              </div>
+            </section>
+          </section>
+
+          <section class="view" id="view-appointments" aria-labelledby="appointments-title">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Appointments</p>
+                <h2 id="appointments-title">Upcoming and past visits</h2>
+              </div>
+            </div>
+            <div class="split-layout">
+              <section class="panel" aria-labelledby="new-appointment-title">
+                <h3 id="new-appointment-title">Add appointment</h3>
+                <form id="appointment-form" class="form-grid">
+                  <label>
+                    Provider
+                    <select name="providerId" required></select>
+                  </label>
+                  <label>
+                    Date and time
+                    <input name="startsAt" type="datetime-local" required>
+                  </label>
+                  <label>
+                    Visit type
+                    <select name="visitType" required>
+                      <option value="Office visit">Office visit</option>
+                      <option value="Telehealth">Telehealth</option>
+                      <option value="Lab visit">Lab visit</option>
+                    </select>
+                  </label>
+                  <label>
+                    Reason
+                    <input name="reason" type="text" maxlength="80" required>
+                  </label>
+                  <label class="span-2">
+                    Preparation notes
+                    <textarea name="prepNotes" rows="3"></textarea>
+                  </label>
+                  <button class="button primary span-2" type="submit">Add appointment</button>
+                </form>
+              </section>
+              <section class="panel" aria-labelledby="appointment-list-title">
+                <h3 id="appointment-list-title">Appointment list</h3>
+                <div id="appointments-list" class="item-list"></div>
+              </section>
+            </div>
+          </section>
+
+          <section class="view" id="view-messages" aria-labelledby="messages-title">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Messages</p>
+                <h2 id="messages-title">Care team messages</h2>
+              </div>
+            </div>
+            <section class="panel">
+              <div id="messages-list" class="item-list"></div>
+            </section>
+          </section>
+
+          <section class="view" id="view-results" aria-labelledby="results-title">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Results</p>
+                <h2 id="results-title">Released test results</h2>
+              </div>
+              <p class="muted">The prototype only shows existing result summaries. It does not interpret medical meaning.</p>
+            </div>
+            <section class="panel">
+              <div id="results-list" class="item-list"></div>
+            </section>
+          </section>
+
+          <section class="view" id="view-medications" aria-labelledby="medications-title">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Medications</p>
+                <h2 id="medications-title">Medication and refill view</h2>
+              </div>
+            </div>
+            <section class="panel">
+              <div id="medications-list" class="item-list"></div>
+            </section>
+          </section>
+
+          <section class="view" id="view-tasks" aria-labelledby="tasks-title">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Tasks</p>
+                <h2 id="tasks-title">Follow-up checklist</h2>
+              </div>
+            </div>
+            <div class="split-layout">
+              <section class="panel" aria-labelledby="new-task-title">
+                <h3 id="new-task-title">Add follow-up task</h3>
+                <form id="task-form" class="form-grid">
+                  <label class="span-2">
+                    Task title
+                    <input name="title" type="text" maxlength="80" required>
+                  </label>
+                  <label>
+                    Type
+                    <select name="type" required>
+                      <option value="Lab">Lab</option>
+                      <option value="Medication">Medication</option>
+                      <option value="Referral">Referral</option>
+                      <option value="Message">Message</option>
+                      <option value="Form">Form</option>
+                    </select>
+                  </label>
+                  <label>
+                    Priority
+                    <select name="priority" required>
+                      <option value="normal">Normal</option>
+                      <option value="high">High</option>
+                      <option value="low">Low</option>
+                    </select>
+                  </label>
+                  <label>
+                    Due date
+                    <input name="dueAt" type="date" required>
+                  </label>
+                  <label class="span-2">
+                    Details
+                    <textarea name="details" rows="3"></textarea>
+                  </label>
+                  <button class="button primary span-2" type="submit">Add task</button>
+                </form>
+              </section>
+              <section class="panel" aria-labelledby="all-tasks-title">
+                <h3 id="all-tasks-title">All tasks</h3>
+                <div id="all-tasks-list" class="item-list"></div>
+              </section>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="app.js"></script>
+  </body>
+</html>

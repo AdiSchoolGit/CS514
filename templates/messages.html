@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Messages · {{ patient.name }}{% endblock %}
+{% block content %}
+<header class="page-header">
+  <h1>Messages</h1>
+  <p class="meta">{{ patient.name }}</p>
+</header>
+
+{% if messages %}
+<ul class="records">
+  {% for item in messages %}
+  <li class="record">
+    <p class="record-title">{{ item.subject }}</p>
+    <p class="meta">
+      {{ item.provider_name }}, {{ item.provider_role }}
+      · {{ item.sent_at|when }}
+      · <span class="badge badge-{{ item.status }}">{{ item.status|label }}</span>
+    </p>
+    <p>{{ item.body }}</p>
+    {% if item.read_at %}<p class="meta">Read {{ item.read_at|when }}</p>{% endif %}
+    {% if item.status == 'unread' %}
+    <form method="post" action="{{ url_for('read_message', message_id=item.id) }}">
+      <button class="button" type="submit">Mark read</button>
+    </form>
+    {% endif %}
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<div class="empty">
+  <p>No unread messages</p>
+  <p>Messages from your care team will appear here.</p>
+</div>
+{% endif %}
+{% endblock %}

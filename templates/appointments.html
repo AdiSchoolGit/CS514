@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}Appointments · {{ patient.name }}{% endblock %}
+{% block content %}
+<header class="page-header">
+  <h1>Appointments</h1>
+  <p class="meta">{{ patient.name }}</p>
+</header>
+
+{% if appointments %}
+<ul class="records">
+  {% for item in appointments %}
+  <li class="record">
+    <p class="record-title">{{ item.reason }}</p>
+    <p class="meta">
+      {{ item.starts_at|when }}
+      · <span class="badge badge-{{ item.status }}">{{ item.status|label }}</span>
+      · <span class="badge">{{ item.check_in_status|label }}</span>
+    </p>
+    <p>{{ item.provider_name }}, {{ item.provider_role }} · {{ item.department_name }}</p>
+    <p>{{ item.location }} · {{ item.visit_type|visit_label }}</p>
+    {% if item.prep_notes %}<p>{{ item.prep_notes }}</p>{% endif %}
+    {% if item.status == 'scheduled' %}
+    <form method="post" action="{{ url_for('cancel_appointment', appointment_id=item.id) }}">
+      <button class="button button-danger" type="submit">Cancel appointment</button>
+    </form>
+    {% endif %}
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="empty">No appointments yet.</p>
+{% endif %}
+
+<section class="card" aria-labelledby="add-appointment">
+  <h2 id="add-appointment">Add appointment</h2>
+  {% if errors %}
+  <ul class="form-errors" role="alert">
+    {% for message in errors %}
+    <li>{{ message }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  <form method="post" action="{{ url_for('create_appointment') }}">
+    <input type="hidden" name="patient_id" value="{{ patient.id }}">
+    <div class="field">
+      <label for="provider_id">Provider</label>
+      <select id="provider_id" name="provider_id" required>
+        <option value="">Select a provider</option>
+        {% for provider in providers %}
+        <option value="{{ provider.id }}" {% if form.provider_id|string == provider.id|string %}selected{% endif %}>
+          {{ provider.full_name }} · {{ provider.department_name }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label for="department_id">Department</label>
+      <select id="department_id" name="department_id" required>
+        <option value="">Select a department</option>
+        {% for department in departments %}
+        <option value="{{ department.id }}" {% if form.department_id|string == department.id|string %}selected{% endif %}>
+          {{ department.name }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label for="starts_at">Date and time</label>
+      <input id="starts_at" name="starts_at" type="datetime-local" value="{{ form.starts_at }}" required>
+    </div>
+    <div class="field">
+      <label for="visit_type">Visit type</label>
+      <select id="visit_type" name="visit_type" required>
+        <option value="office" {% if not form.visit_type or form.visit_type == 'office' %}selected{% endif %}>Office visit</option>
+        <option value="telehealth" {% if form.visit_type == 'telehealth' %}selected{% endif %}>Telehealth</option>
+        <option value="lab" {% if form.visit_type == 'lab' %}selected{% endif %}>Lab visit</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="location">Location</label>
+      <input id="location" name="location" type="text" value="{{ form.location }}" maxlength="120" required>
+    </div>
+    <div class="field">
+      <label for="reason">Reason</label>
+      <input id="reason" name="reason" type="text" value="{{ form.reason }}" maxlength="160" required>
+    </div>
+    <div class="field">
+      <label for="prep_notes">Preparation notes</label>
+      <textarea id="prep_notes" name="prep_notes" maxlength="400">{{ form.prep_notes }}</textarea>
+    </div>
+    <button class="button" type="submit">Add appointment</button>
+  </form>
+</section>
+{% endblock %}

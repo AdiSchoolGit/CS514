@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Patients · Care Overview{% endblock %}
+{% block content %}
+<h1>Choose a patient</h1>
+<p class="intro">Open a fictional chart to see the care overview.</p>
+<ul class="patient-list">
+  {% for patient in patients %}
+  <li class="patient-row">
+    <div>
+      <h2>{{ patient.name }}</h2>
+      <p class="meta">Born {{ patient.dob|when }} · Age {{ patient.age }}</p>
+      <p class="meta">
+        {% if patient.next_appointment_at %}
+        Next appointment {{ patient.next_appointment_at|when }}
+        {% else %}
+        No upcoming appointment
+        {% endif %}
+        · {{ patient.open_task_count }} open {{ 'task' if patient.open_task_count == 1 else 'tasks' }}
+        · {{ patient.unread_message_count }} unread {{ 'message' if patient.unread_message_count == 1 else 'messages' }}
+      </p>
+    </div>
+    <a href="{{ url_for('dashboard', patient_id=patient.id) }}">Open overview</a>
+  </li>
+  {% else %}
+  <li class="empty">No patients are on file.</li>
+  {% endfor %}
+</ul>
+{% endblock %}

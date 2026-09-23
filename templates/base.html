@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Care Overview{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to main content</a>
+  <div class="app-shell">
+    <nav class="nav" aria-label="Portal">
+      <p class="brand">Care Overview</p>
+      <ul>
+        <li>
+          <a class="{% if request.endpoint in ['home', 'patients'] %}current{% endif %}" href="{{ url_for('patients') }}">Patients</a>
+        </li>
+        {% if patient is defined and patient %}
+        <li>
+          <a class="{% if request.endpoint == 'dashboard' %}current{% endif %}" href="{{ url_for('dashboard', patient_id=patient.id) }}">Overview</a>
+        </li>
+        <li>
+          <a class="{% if request.endpoint in ['appointments', 'create_appointment'] %}current{% endif %}" href="{{ url_for('appointments', patient_id=patient.id) }}">Appointments</a>
+        </li>
+        <li>
+          <a class="{% if request.endpoint in ['tasks', 'create_task'] %}current{% endif %}" href="{{ url_for('tasks', patient_id=patient.id) }}">Tasks</a>
+        </li>
+        <li>
+          <a class="{% if request.endpoint == 'messages' %}current{% endif %}" href="{{ url_for('messages', patient_id=patient.id) }}">Messages</a>
+        </li>
+        <li>
+          <a class="{% if request.endpoint == 'results' %}current{% endif %}" href="{{ url_for('results', patient_id=patient.id) }}">Results</a>
+        </li>
+        <li>
+          <a class="{% if request.endpoint == 'medications' %}current{% endif %}" href="{{ url_for('medications', patient_id=patient.id) }}">Medications</a>
+        </li>
+        {% endif %}
+      </ul>
+      <p class="nav-note">Fictional records for class use. This app does not provide medical advice.</p>
+    </nav>
+    <main id="main" class="content">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <ul class="flashes">
+          {% for category, message in messages %}
+          <li class="flash flash-{{ category }}" role="{{ 'alert' if category == 'error' else 'status' }}">{{ message }}</li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+      {% endwith %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</body>
+</html>

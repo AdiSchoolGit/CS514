@@ -28,3 +28,40 @@ The app should feel like a practical healthcare portal, not a startup landing pa
 - Frontend: Jinja templates, plain CSS, small vanilla JavaScript
 - Tests: pytest
 - Version control: Git and GitHub CLI
+
+## Setup
+
+```text
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python db.py --init
+python app.py
+```
+
+Open http://127.0.0.1:5000 and choose a fictional patient.
+
+`python app.py` creates the database if it is missing. Run `python db.py --init` again to reset it.
+
+Run tests with `pytest`.
+
+Routes match the backend route plan:
+
+```text
+GET /
+GET /patients
+GET /dashboard/<patient_id>
+GET /appointments/<patient_id>
+POST /appointments
+POST /appointments/<appointment_id>/cancel
+GET /tasks/<patient_id>
+POST /tasks
+POST /tasks/<task_id>/complete
+POST /tasks/<task_id>/delete
+GET /messages/<patient_id>
+POST /messages/<message_id>/read
+GET /results/<patient_id>
+POST /results/<result_id>/review
+GET /medications/<patient_id>
+GET /api/care-overview/<patient_id>
+```

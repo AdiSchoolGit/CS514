@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}Tasks · {{ patient.name }}{% endblock %}
+{% block content %}
+<header class="page-header">
+  <h1>Tasks</h1>
+  <p class="meta">{{ patient.name }}</p>
+</header>
+
+{% if tasks %}
+<ul class="records">
+  {% for task in tasks %}
+  <li class="record">
+    <p class="record-title">{{ task.title }}</p>
+    <p class="meta">
+      <span class="badge badge-{{ task.priority }}">{{ task.priority|label }}</span>
+      <span class="badge badge-{{ task.status }}">{{ task.status|label }}</span>
+      {% if task.is_overdue %}<span class="badge badge-overdue">Overdue</span>{% endif %}
+      · {{ task.task_type|label }}
+      · Due {{ task.due_at|when }}
+    </p>
+    {% if task.details %}<p>{{ task.details }}</p>{% endif %}
+    {% if task.visit_at %}<p class="meta">Related visit {{ task.visit_at|when }}</p>{% endif %}
+    {% if task.completed_at %}<p class="meta">Completed {{ task.completed_at|when }}</p>{% endif %}
+    <div class="row-actions">
+      {% if task.status == 'open' %}
+      <form method="post" action="{{ url_for('complete_task', task_id=task.id) }}">
+        <button class="button" type="submit">Mark complete</button>
+      </form>
+      {% endif %}
+      <form method="post" action="{{ url_for('delete_task', task_id=task.id) }}">
+        <button class="button button-danger" type="submit">Delete task</button>
+      </form>
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="empty">No tasks yet.</p>
+{% endif %}
+
+<section class="card" aria-labelledby="add-task">
+  <h2 id="add-task">Add task</h2>
+  {% if errors %}
+  <ul class="form-errors" role="alert">
+    {% for message in errors %}
+    <li>{{ message }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  <form method="post" action="{{ url_for('create_task') }}">
+    <input type="hidden" name="patient_id" value="{{ patient.id }}">
+    <div class="field">
+      <label for="title">Title</label>
+      <input id="title" name="title" type="text" value="{{ form.title }}" maxlength="120" required>
+    </div>
+    <div class="field">
+      <label for="details">Details</label>
+      <textarea id="details" name="details" maxlength="400">{{ form.details }}</textarea>
+    </div>
+    <div class="field">
+      <label for="task_type">Task type</label>
+      <select id="task_type" name="task_type" required>
+        <option value="general" {% if not form.task_type or form.task_type == 'general' %}selected{% endif %}>General</option>
+        <option value="lab" {% if form.task_type == 'lab' %}selected{% endif %}>Lab</option>
+        <option value="appointment" {% if form.task_type == 'appointment' %}selected{% endif %}>Appointment</option>
+        <option value="medication" {% if form.task_type == 'medication' %}selected{% endif %}>Medication</option>
+        <option value="referral" {% if form.task_type == 'referral' %}selected{% endif %}>Referral</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="due_at">Due date</label>
+      <input id="due_at" name="due_at" type="date" value="{{ form.due_at }}" required>
+    </div>
+    <div class="field">
+      <label for="priority">Priority</label>
+      <select id="priority" name="priority" required>
+        <option value="low" {% if form.priority == 'low' %}selected{% endif %}>Low</option>
+        <option value="normal" {% if not form.priority or form.priority == 'normal' %}selected{% endif %}>Normal</option>
+        <option value="high" {% if form.priority == 'high' %}selected{% endif %}>High</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="visit_summary_id">Related visit</label>
+      <select id="visit_summary_id" name="visit_summary_id">
+        <option value="">Not tied to a visit</option>
+        {% for summary in summaries %}
+        <option value="{{ summary.id }}" {% if form.visit_summary_id|string == summary.id|string %}selected{% endif %}>
+          {{ summary.starts_at|when }} · {{ summary.reason }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+    <button class="button" type="submit">Add task</button>
+  </form>
+</section>
+{% endblock %}

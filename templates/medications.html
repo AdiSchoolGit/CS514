@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Medications · {{ patient.name }}{% endblock %}
+{% block content %}
+<header class="page-header">
+  <h1>Medications</h1>
+  <p class="meta">{{ patient.name }}</p>
+  <p>Active, paused, and stopped medications are listed with the refill record on file.</p>
+</header>
+
+{% if medications %}
+<ul class="records">
+  {% for item in medications %}
+  <li class="record">
+    <p class="record-title">{{ item.name }}</p>
+    <p>
+      <span class="badge badge-{{ item.status }}">{{ item.status|label }}</span>
+      {% if item.dosage %} · {{ item.dosage }}{% endif %}
+      {% if item.frequency %} · {{ item.frequency }}{% endif %}
+    </p>
+    {% if item.started_at %}<p class="meta">Started {{ item.started_at|when }}</p>{% endif %}
+    {% if item.refill_status %}
+    <dl class="facts">
+      <div>
+        <dt>Prescriber</dt>
+        <dd>{{ item.provider_name }}</dd>
+      </div>
+      <div>
+        <dt>Pharmacy</dt>
+        <dd>{{ item.pharmacy }}</dd>
+      </div>
+      <div>
+        <dt>Refills remaining</dt>
+        <dd>{{ item.refills_remaining }}</dd>
+      </div>
+      <div>
+        <dt>Refill status</dt>
+        <dd><span class="badge badge-{{ item.refill_status }}">{{ item.refill_status|label }}</span></dd>
+      </div>
+      <div>
+        <dt>Last filled</dt>
+        <dd>{{ item.last_filled_at|when }}</dd>
+      </div>
+      <div>
+        <dt>Next refill</dt>
+        <dd>{{ item.next_refill_at|when }}</dd>
+      </div>
+    </dl>
+    {% else %}
+    <p class="empty">No refill is on file.</p>
+    {% endif %}
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="empty">No medications on file.</p>
+{% endif %}
+{% endblock %}

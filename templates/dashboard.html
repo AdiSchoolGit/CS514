@@ -10,23 +10,22 @@
   </details>
 </header>
 
-<section class="card" aria-labelledby="overview-heading">
-  <h2 id="overview-heading">Care overview</h2>
+<section class="overview" aria-labelledby="overview-heading">
+  <h2 id="overview-heading" class="sr-only">Care overview</h2>
   {% set counts = [
-    ('Unread messages', overview.unread_message_count, url_for('messages', patient_id=patient.id), 'pink'),
-    ('New results', overview.new_result_count, url_for('results', patient_id=patient.id), 'lavender'),
-    ('Open tasks', overview.open_task_count, url_for('tasks', patient_id=patient.id), 'mint'),
-    ('Overdue tasks', overview.overdue_task_count, url_for('tasks', patient_id=patient.id), 'peach'),
-    ('Refill reminders', overview.refill_due_count, url_for('medications', patient_id=patient.id), 'butter'),
-    ('Active referrals', overview.active_referral_count, None, 'sky'),
+    ('Unread messages', overview.unread_message_count, url_for('messages', patient_id=patient.id), 'pink', None),
+    ('New results', overview.new_result_count, url_for('results', patient_id=patient.id), 'lavender', None),
+    ('Open tasks', overview.open_task_count, url_for('tasks', patient_id=patient.id), 'mint', overview.overdue_task_count),
+    ('Refill reminders', overview.refill_due_count, url_for('medications', patient_id=patient.id), 'butter', None),
   ] %}
   {% set shown = counts | selectattr(1) | list %}
   {% if shown %}
   <dl class="counts">
-    {% for label, value, link, color in shown %}
+    {% for label, value, link, color, overdue in shown %}
     <div class="tile tile-{{ color }}">
-      <dt>{% if link %}<a href="{{ link }}">{{ label }}</a>{% else %}{{ label }}{% endif %}</dt>
+      <dt><a href="{{ link }}">{{ label }}</a></dt>
       <dd>{{ value }}</dd>
+      {% if overdue %}<p class="tile-note">{{ overdue }} overdue</p>{% endif %}
     </div>
     {% endfor %}
   </dl>
@@ -40,9 +39,7 @@
     <section class="card" aria-labelledby="steps-heading">
       <h2 id="steps-heading">Next steps</h2>
       {% if priorities %}
-      <ul class="priority-list">
-        {% for row in priorities %}<li>{{ row.priority|label }}: {{ row.task_count }}</li>{% endfor %}
-      </ul>
+      <p class="meta priority-line">{% for row in priorities %}{{ row.task_count }} {{ row.priority|label|lower }}{% if not loop.last %} · {% endif %}{% endfor %}</p>
       {% endif %}
       {% if tasks %}
       <ul class="records">
@@ -141,15 +138,12 @@
       <p class="empty">No new updates.</p>
       {% endif %}
     </section>
-
-    <section class="card" aria-labelledby="quick-heading">
-      <h2 id="quick-heading">Quick access</h2>
-      <ul class="link-list">
-        {% for link in quick_links %}
-        <li><a href="{{ link.path }}">{{ link.label }}</a></li>
-        {% endfor %}
-      </ul>
-    </section>
   </div>
 </div>
+
+<nav class="quick" aria-label="Quick access">
+  {% for link in quick_links %}
+  <a href="{{ link.path }}">{{ link.label }}</a>
+  {% endfor %}
+</nav>
 {% endblock %}

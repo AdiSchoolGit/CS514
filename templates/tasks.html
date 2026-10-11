@@ -10,17 +10,17 @@
 <ul class="records">
   {% for task in tasks %}
   <li class="record">
-    <p class="record-title">{{ task.title }}</p>
-    <p class="meta">
-      <span class="badge badge-{{ task.priority }}">{{ task.priority|label }}</span>
-      <span class="badge badge-{{ task.status }}">{{ task.status|label }}</span>
-      {% if task.is_overdue %}<span class="badge badge-overdue">Overdue</span>{% endif %}
-      · {{ task.task_type|label }}
-      · Due {{ task.due_at|when }}
-    </p>
-    {% if task.details %}<p>{{ task.details }}</p>{% endif %}
-    {% if task.visit_at %}<p class="meta">Related visit {{ task.visit_at|when }}</p>{% endif %}
-    {% if task.completed_at %}<p class="meta">Completed {{ task.completed_at|when }}</p>{% endif %}
+    <details class="item">
+      <summary>
+        <span class="record-title">{{ task.title }}</span>
+        {% if task.is_overdue %}<span class="badge badge-overdue">Overdue</span>
+        {% else %}<span class="badge badge-{{ task.status }}">{{ task.status|label }}</span>{% endif %}
+      </summary>
+      <p class="meta">{{ task.priority|label }} priority · {{ task.task_type|label }} · Due {{ task.due_at|when }}</p>
+      {% if task.details %}<p>{{ task.details }}</p>{% endif %}
+      {% if task.visit_at %}<p class="meta">Related visit {{ task.visit_at|when }}</p>{% endif %}
+      {% if task.completed_at %}<p class="meta">Completed {{ task.completed_at|when }}</p>{% endif %}
+    </details>
     <div class="row-actions">
       {% if task.status == 'open' %}
       <form method="post" action="{{ url_for('complete_task', task_id=task.id) }}">
@@ -38,8 +38,8 @@
 <p class="empty">No tasks yet.</p>
 {% endif %}
 
-<section class="card" aria-labelledby="add-task">
-  <h2 id="add-task">Add task</h2>
+<details class="card add-form" {% if errors %}open{% endif %}>
+  <summary><h2 id="add-task">+ Add task</h2></summary>
   {% if errors %}
   <ul class="form-errors" role="alert">
     {% for message in errors %}
@@ -92,5 +92,5 @@
     </div>
     <button class="button" type="submit">Add task</button>
   </form>
-</section>
+</details>
 {% endblock %}

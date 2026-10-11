@@ -10,14 +10,15 @@
 <ul class="records">
   {% for item in messages %}
   <li class="record">
-    <p class="record-title">{{ item.subject }}</p>
-    <p class="meta">
-      {{ item.provider_name }}, {{ item.provider_role }}
-      · {{ item.sent_at|when }}
-      · <span class="badge badge-{{ item.status }}">{{ item.status|label }}</span>
-    </p>
-    <p>{{ item.body }}</p>
-    {% if item.read_at %}<p class="meta">Read {{ item.read_at|when }}</p>{% endif %}
+    <details class="item">
+      <summary>
+        <span class="record-title">{{ item.subject }}</span>
+        <span class="badge badge-{{ item.status }}">{{ item.status|label }}</span>
+      </summary>
+      <p class="meta">{{ item.provider_name }}, {{ item.provider_role }} · {{ item.sent_at|when }}</p>
+      <p>{{ item.body }}</p>
+      {% if item.read_at %}<p class="meta">Read {{ item.read_at|when }}</p>{% endif %}
+    </details>
     {% if item.status == 'unread' %}
     <form method="post" action="{{ url_for('read_message', message_id=item.id) }}">
       <button class="button" type="submit">Mark read</button>

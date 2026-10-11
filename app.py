@@ -114,6 +114,85 @@ def visit_label(value):
     return label_text(value)
 
 
+PRIORITY_RANK = {"high": 0, "normal": 1, "low": 2}
+
+
+def plural(count, word):
+    return f"{count} {word}" if count == 1 else f"{count} {word}s"
+
+
+def rank_tasks(tasks):
+    return sorted(
+        tasks,
+        key=lambda t: (not t["is_overdue"], PRIORITY_RANK.get(t["priority"], 1), t["due_at"] or ""),
+    )
+
+
+def pick_focus(patient_id, ranked_tasks):
+    top = ranked_tasks[0] if ranked_tasks else None
+    if top and (top["is_overdue"] or top["priority"] == "high"):
+        return task_focus(top)
+    unread = [m for m in db.list_messages(patient_id) if m["status"] == "unread"]
+    if unread:
+        return {
+            "title": unread[0]["subject"],
+            "detail": f"From {unread[0]['provider_name']}",
+            "button": "Read message",
+            "url": url_for("messages", patient_id=patient_id),
+        }
+    new_results = [r for r in db.list_results(patient_id) if r["status"] == "new"]
+    if new_results:
+        return {
+            "title": new_results[0]["test_name"],
+            "detail": "A new result is ready",
+            "button": "View result",
+            "url": url_for("results", patient_id=patient_id),
+        }
+    return task_focus(top) if top else None
+
+
+def task_focus(task):
+    due = format_when(task["due_at"])
+    if not due:
+        detail = "No due date"
+    elif task["is_overdue"]:
+        detail = f"Overdue, was due {due}"
+    else:
+        detail = f"Due {due}"
+    return {
+        "task_id": task["id"],
+        "title": task["title"],
+        "detail": detail,
+        "button": "Mark done",
+        "url": url_for("complete_task", task_id=task["id"]),
+    }
+
+
+def attention_sentence(overview):
+    parts = []
+    if overview["open_task_count"]:
+        text = plural(overview["open_task_count"], "task") + " to do"
+        if overview["overdue_task_count"]:
+            text += f" ({overview['overdue_task_count']} overdue)"
+        parts.append(text)
+    if overview["unread_message_count"]:
+        parts.append(plural(overview["unread_message_count"], "new message"))
+    if overview["new_result_count"]:
+        parts.append(plural(overview["new_result_count"], "new result"))
+    if not parts:
+        return "You're all caught up."
+    if len(parts) == 1:
+        return f"You have {parts[0]}."
+    return f"You have {', '.join(parts[:-1])} and {parts[-1]}."
+
+
+def back_to(default_url):
+    target = request.form.get("next", "")
+    if target.startswith("/") and not target.startswith("//"):
+        return redirect(target)
+    return redirect(default_url)
+
+
 def require_patient(patient_id):
     patient = db.get_patient(patient_id)
     if patient is None:
@@ -192,17 +271,19 @@ def create_app(db_path=None):
     def dashboard(patient_id):
         patient = require_patient(patient_id)
         overview = db.care_overview(patient_id)
+        ranked = rank_tasks(db.list_tasks(patient_id, open_only=True))
+        focus = pick_focus(patient_id, ranked)
+        focus_task_id = focus.get("task_id") if focus else None
         return render_template(
             "dashboard.html",
             patient=patient,
             overview=overview,
+            summary=attention_sentence(overview),
+            focus=focus,
+            later_tasks=[t for t in ranked if t["id"] != focus_task_id],
             recent_visit=db.recent_visit(patient_id),
             upcoming=db.upcoming_appointment(patient_id),
-            tasks=db.list_tasks(patient_id, open_only=True),
-            priorities=db.task_counts_by_priority(patient_id),
             referrals=db.active_referrals(patient_id),
-            notifications=db.open_notifications(patient_id),
-            quick_links=db.quick_links(patient_id),
         )
 
     @app.get("/appointments/<int:patient_id>")
@@ -344,7 +425,7 @@ def create_app(db_path=None):
             flash("Task is already complete.", "error")
         else:
             flash("Task marked complete.", "success")
-        return redirect(url_for("tasks", patient_id=task["patient_id"]))
+        return back_to(url_for("tasks", patient_id=task["patient_id"]))
 
     @app.post("/tasks/<int:task_id>/delete")
     def delete_task(task_id):

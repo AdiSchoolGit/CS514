@@ -4,22 +4,22 @@
 <header class="page-header">
   <h1>Test results</h1>
   <p class="meta">{{ patient.name }}</p>
-  <p>This page shows the recorded summary only. It does not interpret results.</p>
+  <p class="meta">Summaries only. This page does not interpret results.</p>
 </header>
 
 {% if results %}
 <ul class="records">
   {% for item in results %}
   <li class="record">
-    <p class="record-title">{{ item.test_name }}</p>
-    <p class="meta">
-      {{ item.category|label }}
-      · <span class="badge badge-{{ item.status }}">{{ item.status|label }}</span>
-      · {{ item.provider_name }}
-    </p>
-    <p class="meta">Collected {{ item.collected_at|when }} · Released {{ item.released_at|when }}</p>
-    <p>{{ item.value_summary }}</p>
-    {% if item.reviewed_at %}<p class="meta">Reviewed {{ item.reviewed_at|when }}</p>{% endif %}
+    <details class="item">
+      <summary>
+        <span class="record-title">{{ item.test_name }}</span>
+        <span class="badge badge-{{ item.status }}">{{ item.status|label }}</span>
+      </summary>
+      <p class="meta">{{ item.category|label }} · {{ item.provider_name }} · Collected {{ item.collected_at|when }} · Released {{ item.released_at|when }}</p>
+      <p>{{ item.value_summary }}</p>
+      {% if item.reviewed_at %}<p class="meta">Reviewed {{ item.reviewed_at|when }}</p>{% endif %}
+    </details>
     {% if item.status == 'new' %}
     <form method="post" action="{{ url_for('review_result', result_id=item.id) }}">
       <button class="button" type="submit">Mark reviewed</button>

@@ -1,149 +1,134 @@
 {% extends "base.html" %}
 {% block title %}{{ patient.name }} · Care Overview{% endblock %}
 {% block content %}
-<header class="page-header">
-  <h1>{{ patient.name }}</h1>
-  <details class="more">
-    <summary>Profile</summary>
-    <p class="meta">Born {{ patient.dob|when }} · Age {{ patient.age }} · {{ patient.email }} · {{ patient.phone }}</p>
-    <p class="meta">{% if overview.last_visit_at %}Last visit {{ overview.last_visit_at|when }}{% else %}No completed visit{% endif %}</p>
-  </details>
-</header>
+{% set here = url_for('dashboard', patient_id=patient.id) %}
+<div class="stack">
+  <header class="page-header">
+    <h1>{{ patient.name }}</h1>
+    <p class="summary">{{ summary }}{% if upcoming %} Your next visit is {{ upcoming.starts_at|when }}.{% endif %}</p>
+    <details class="more">
+      <summary>Profile</summary>
+      <p class="meta">Born {{ patient.dob|when }} · Age {{ patient.age }} · {{ patient.email }} · {{ patient.phone }}</p>
+    </details>
+  </header>
 
-<section class="overview" aria-labelledby="overview-heading">
-  <h2 id="overview-heading" class="sr-only">Care overview</h2>
-  {% set counts = [
-    ('Unread messages', overview.unread_message_count, url_for('messages', patient_id=patient.id), 'pink', None),
-    ('New results', overview.new_result_count, url_for('results', patient_id=patient.id), 'lavender', None),
-    ('Open tasks', overview.open_task_count, url_for('tasks', patient_id=patient.id), 'mint', overview.overdue_task_count),
-    ('Refill reminders', overview.refill_due_count, url_for('medications', patient_id=patient.id), 'butter', None),
-  ] %}
-  {% set shown = counts | selectattr(1) | list %}
-  {% if shown %}
+  {% if focus %}
+  <section class="focus" aria-labelledby="focus-heading">
+    <p class="focus-label" id="focus-heading">Do this next</p>
+    <h2>{{ focus.title }}</h2>
+    <p class="meta">{{ focus.detail }}</p>
+    {% if focus.task_id %}
+    <form method="post" action="{{ focus.url }}">
+      <input type="hidden" name="next" value="{{ here }}">
+      <button class="button focus-button" type="submit">{{ focus.button }}</button>
+    </form>
+    {% else %}
+    <a class="button focus-button" href="{{ focus.url }}">{{ focus.button }}</a>
+    {% endif %}
+  </section>
+  {% else %}
+  <section class="focus focus-done" aria-labelledby="focus-heading">
+    <p class="focus-label" id="focus-heading">All caught up</p>
+    <h2>Nothing needs your attention</h2>
+    <p class="meta">No open tasks.</p>
+  </section>
+  {% endif %}
+
+  {% set tiles = [
+    ('Read messages', overview.unread_message_count, url_for('messages', patient_id=patient.id), 'pink'),
+    ('Review results', overview.new_result_count, url_for('results', patient_id=patient.id), 'lavender'),
+    ('Check refills', overview.refill_due_count, url_for('medications', patient_id=patient.id), 'butter'),
+  ] | selectattr(1) | list %}
+  {% if tiles %}
   <dl class="counts">
-    {% for label, value, link, color, overdue in shown %}
+    {% for label, value, link, color in tiles %}
     <div class="tile tile-{{ color }}">
       <dt><a href="{{ link }}">{{ label }}</a></dt>
       <dd>{{ value }}</dd>
-      {% if overdue %}<p class="tile-note">{{ overdue }} overdue</p>{% endif %}
     </div>
     {% endfor %}
   </dl>
-  {% else %}
-  <p class="empty">Nothing needs attention right now.</p>
   {% endif %}
-</section>
 
-<div class="dashboard-grid">
-  <div>
-    <section class="card" aria-labelledby="steps-heading">
-      <h2 id="steps-heading">Next steps</h2>
-      {% if priorities %}
-      <p class="meta priority-line">{% for row in priorities %}{{ row.task_count }} {{ row.priority|label|lower }}{% if not loop.last %} · {% endif %}{% endfor %}</p>
-      {% endif %}
-      {% if tasks %}
-      <ul class="records">
-        {% for task in tasks %}
-        <li class="record">
-          <details class="item">
-            <summary>
-              <span class="record-title">{{ task.title }}</span>
-              {% if task.is_overdue %}<span class="badge badge-overdue">Overdue</span>
-              {% else %}<span class="badge badge-{{ task.priority }}">{{ task.priority|label }}</span>{% endif %}
-            </summary>
-            <p class="meta">{{ task.task_type|label }} · Due {{ task.due_at|when }}{% if task.visit_at %} · Related visit {{ task.visit_at|when }}{% endif %}</p>
-            {% if task.details %}<p>{{ task.details }}</p>{% endif %}
-          </details>
-        </li>
-        {% endfor %}
-      </ul>
-      <p class="card-link"><a href="{{ url_for('tasks', patient_id=patient.id) }}">Update tasks</a></p>
-      {% else %}
-      <p class="empty">No open tasks.</p>
-      {% endif %}
-    </section>
+  {% if later_tasks or referrals %}
+  <section class="card" aria-labelledby="steps-heading">
+    <h2 id="steps-heading">{% if focus %}After that{% else %}Next steps{% endif %}</h2>
+    <ul class="todo">
+      {% for task in later_tasks %}
+      <li class="todo-row">
+        <form method="post" action="{{ url_for('complete_task', task_id=task.id) }}">
+          <input type="hidden" name="next" value="{{ here }}">
+          <button class="check-btn" type="submit" aria-label="Mark done: {{ task.title }}"></button>
+        </form>
+        <details class="item">
+          <summary>
+            <span class="record-title">{{ task.title }}</span>
+            {% if task.is_overdue %}<span class="badge badge-overdue">Overdue</span>
+            {% elif task.priority == 'high' %}<span class="badge badge-high">High</span>{% endif %}
+          </summary>
+          <p class="meta">{{ task.task_type|label }} · Due {{ task.due_at|when }}{% if task.visit_at %} · Related visit {{ task.visit_at|when }}{% endif %}</p>
+          {% if task.details %}<p>{{ task.details }}</p>{% endif %}
+        </details>
+      </li>
+      {% endfor %}
+      {% for referral in referrals %}
+      <li class="todo-row todo-note">
+        <details class="item">
+          <summary>
+            <span class="record-title">{{ referral.reason }}</span>
+            <span class="badge badge-{{ referral.status }}">Referral · {{ referral.status|label }}</span>
+          </summary>
+          <p class="meta">{{ referral.department_name }} · {{ referral.provider_name }}</p>
+        </details>
+      </li>
+      {% endfor %}
+    </ul>
+    <p class="card-link"><a href="{{ url_for('tasks', patient_id=patient.id) }}">See all tasks</a></p>
+  </section>
+  {% endif %}
 
-    <section class="card" id="recent-visit" aria-labelledby="visit-heading">
-      <h2 id="visit-heading">Recent visit</h2>
-      {% if recent_visit %}
-      <details class="item">
-        <summary>
-          <span class="record-title">{{ recent_visit.visit_reason }}</span>
-          <span class="meta">{{ recent_visit.starts_at|when }}</span>
-        </summary>
-        <dl class="facts">
-          <div><dt>Provider</dt><dd>{{ recent_visit.provider_name }}, {{ recent_visit.provider_role }} · {{ recent_visit.department_name }}</dd></div>
-          <div><dt>Location</dt><dd>{{ recent_visit.location }} · {{ recent_visit.visit_type|visit_label }}</dd></div>
-          <div><dt>Summary</dt><dd>{{ recent_visit.summary }}</dd></div>
-          <div><dt>Instructions</dt><dd>{{ recent_visit.instructions }}</dd></div>
-          <div><dt>Medication changes</dt><dd>{{ recent_visit.medication_changes }}</dd></div>
-          <div><dt>Follow-up plan</dt><dd>{{ recent_visit.follow_up_plan }}</dd></div>
-        </dl>
-      </details>
-      {% else %}
-      <p class="empty">No completed visit is on file.</p>
-      {% endif %}
-    </section>
-  </div>
+  <section class="card" aria-labelledby="upcoming-heading">
+    <h2 id="upcoming-heading">Coming up</h2>
+    {% if upcoming %}
+    <details class="item">
+      <summary>
+        <span class="record-title">{{ upcoming.reason }}</span>
+        <span class="meta">{{ upcoming.starts_at|when }}</span>
+      </summary>
+      <dl class="facts">
+        <div><dt>Provider</dt><dd>{{ upcoming.provider_name }}, {{ upcoming.provider_role }} · {{ upcoming.department_name }}</dd></div>
+        <div><dt>Location</dt><dd>{{ upcoming.location }} · {{ upcoming.visit_type|visit_label }}</dd></div>
+        <div><dt>Check-in</dt><dd>{{ upcoming.check_in_status|label }}</dd></div>
+        {% if upcoming.prep_notes %}<div><dt>Preparation</dt><dd>{{ upcoming.prep_notes }}</dd></div>{% endif %}
+      </dl>
+    </details>
+    <p class="card-link"><a href="{{ url_for('appointments', patient_id=patient.id) }}">See all appointments</a></p>
+    {% else %}
+    <p class="empty">No upcoming appointment.</p>
+    <p class="card-link"><a href="{{ url_for('appointments', patient_id=patient.id) }}">Add an appointment</a></p>
+    {% endif %}
+  </section>
 
-  <div>
-    <section class="card" aria-labelledby="upcoming-heading">
-      <h2 id="upcoming-heading">Upcoming appointment</h2>
-      {% if upcoming %}
-      <details class="item">
-        <summary>
-          <span class="record-title">{{ upcoming.reason }}</span>
-          <span class="meta">{{ upcoming.starts_at|when }}</span>
-        </summary>
-        <dl class="facts">
-          <div><dt>Provider</dt><dd>{{ upcoming.provider_name }}, {{ upcoming.provider_role }} · {{ upcoming.department_name }}</dd></div>
-          <div><dt>Location</dt><dd>{{ upcoming.location }} · {{ upcoming.visit_type|visit_label }}</dd></div>
-          <div><dt>Check-in</dt><dd>{{ upcoming.check_in_status|label }}</dd></div>
-          {% if upcoming.prep_notes %}<div><dt>Preparation</dt><dd>{{ upcoming.prep_notes }}</dd></div>{% endif %}
-        </dl>
-      </details>
-      <p class="card-link"><a href="{{ url_for('appointments', patient_id=patient.id) }}">View appointments</a></p>
-      {% else %}
-      <p class="empty">No upcoming appointment.</p>
-      <p class="card-link"><a href="{{ url_for('appointments', patient_id=patient.id) }}">Add an appointment</a></p>
-      {% endif %}
-    </section>
-
-    <section class="card" aria-labelledby="updates-heading">
-      <h2 id="updates-heading">Updates</h2>
-      {% if notifications or referrals %}
-      <ul class="records">
-        {% for note in notifications %}
-        <li class="record">
-          <details class="item">
-            <summary><span class="record-title">{{ note.title }}</span></summary>
-            <p>{{ note.body }}</p>
-            <p class="meta">{{ note.created_at|when }}</p>
-          </details>
-        </li>
-        {% endfor %}
-        {% for referral in referrals %}
-        <li class="record">
-          <details class="item">
-            <summary>
-              <span class="record-title">{{ referral.reason }}</span>
-              <span class="badge badge-{{ referral.status }}">{{ referral.status|label }}</span>
-            </summary>
-            <p class="meta">Referral · {{ referral.department_name }} · {{ referral.provider_name }}</p>
-          </details>
-        </li>
-        {% endfor %}
-      </ul>
-      {% else %}
-      <p class="empty">No new updates.</p>
-      {% endif %}
-    </section>
-  </div>
+  <section class="card" id="recent-visit" aria-labelledby="visit-heading">
+    <h2 id="visit-heading">Last visit</h2>
+    {% if recent_visit %}
+    <details class="item">
+      <summary>
+        <span class="record-title">{{ recent_visit.visit_reason }}</span>
+        <span class="meta">{{ recent_visit.starts_at|when }}</span>
+      </summary>
+      <dl class="facts">
+        <div><dt>Provider</dt><dd>{{ recent_visit.provider_name }}, {{ recent_visit.provider_role }} · {{ recent_visit.department_name }}</dd></div>
+        <div><dt>Location</dt><dd>{{ recent_visit.location }} · {{ recent_visit.visit_type|visit_label }}</dd></div>
+        <div><dt>Summary</dt><dd>{{ recent_visit.summary }}</dd></div>
+        <div><dt>Instructions</dt><dd>{{ recent_visit.instructions }}</dd></div>
+        <div><dt>Medication changes</dt><dd>{{ recent_visit.medication_changes }}</dd></div>
+        <div><dt>Follow-up plan</dt><dd>{{ recent_visit.follow_up_plan }}</dd></div>
+      </dl>
+    </details>
+    {% else %}
+    <p class="empty">No completed visit is on file.</p>
+    {% endif %}
+  </section>
 </div>
-
-<nav class="quick" aria-label="Quick access">
-  {% for link in quick_links %}
-  <a href="{{ link.path }}">{{ link.label }}</a>
-  {% endfor %}
-</nav>
 {% endblock %}

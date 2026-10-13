@@ -1,6 +1,8 @@
 # Care Overview
 
-Care Overview is a CS 514 database project built around a fictional patient portal. It organizes appointments, messages, test results, medications, and follow-up tasks in one dashboard. The project uses fictional patients, providers, and medical records. It does not connect to MyChart or any real healthcare system.
+Care Overview is a CS 514 database project built around a fictional patient portal. It organizes appointments, messages, test results, medications, and follow-up tasks in one dashboard.
+
+The project uses fictional patients, providers, and medical records. It does not connect to MyChart or any real healthcare system.
 
 ## Features
 
@@ -11,7 +13,7 @@ Care Overview is a CS 514 database project built around a fictional patient port
 - View test results and mark them as reviewed
 - View current medications
 - Add and cancel appointments
-- Add, complete, and delete tasksgit 
+- Add, complete, and delete tasks
 - Update dashboard counts after changes
 
 ## Technology

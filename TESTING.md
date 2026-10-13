@@ -1,6 +1,10 @@
+
+## `TESTING.md`
+
+```markdown
 # Testing
 
-## How to run tests
+## How to Run Tests
 
 Create and activate the virtual environment:
 

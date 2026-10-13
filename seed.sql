@@ -283,3 +283,205 @@ INSERT INTO quick_access_items (id, label, path, sort_order, is_active) VALUES
   (4, 'View test results', '/results/{patient_id}', 4, 1),
   (5, 'Review medications', '/medications/{patient_id}', 5, 1),
   (6, 'View visit summaries', '/dashboard/{patient_id}#recent-visit', 6, 1);
+
+INSERT INTO patients (id, first_name, last_name, dob, email, phone) VALUES
+  (4, 'Priya', 'Nair', '1992-02-17', 'priya.nair@example.com', '555-0211'),
+  (5, 'Marcus', 'Webb', '1948-09-03', 'marcus.webb@example.com', '555-0238');
+
+INSERT INTO appointments (
+  id, patient_id, provider_id, department_id, starts_at, visit_type, location, reason, status, check_in_status, prep_notes
+) VALUES
+  (
+    7, 4, 3, 3,
+    datetime('now', 'localtime', '-12 days', 'start of day', '+10 hours'),
+    'office', 'Endocrinology Room 3', 'Thyroid follow-up', 'completed', 'complete', NULL
+  ),
+  (
+    8, 4, 5, 5,
+    datetime('now', 'localtime', '+6 days', 'start of day', '+8 hours'),
+    'lab', 'Main lab', 'Lab draw', 'scheduled', 'available',
+    'Bring your photo ID and arrive 10 minutes early.'
+  ),
+  (
+    9, 5, 1, 1,
+    datetime('now', 'localtime', '-25 days', 'start of day', '+9 hours'),
+    'office', 'Clinic Room 1', 'Annual visit', 'completed', 'complete', NULL
+  ),
+  (
+    10, 5, 2, 2,
+    datetime('now', 'localtime', '-9 days', 'start of day', '+13 hours'),
+    'office', 'Heart Clinic Room 2', 'Blood pressure check', 'completed', 'complete', NULL
+  ),
+  (
+    11, 5, 2, 2,
+    datetime('now', 'localtime', '+18 days', 'start of day', '+11 hours'),
+    'office', 'Heart Clinic Room 2', 'Follow-up visit', 'scheduled', 'not_started',
+    'Bring your home blood pressure log.'
+  );
+
+INSERT INTO visit_summaries (
+  id, appointment_id, reason, summary, instructions, medication_changes, follow_up_plan
+) VALUES
+  (
+    4, 7, 'Thyroid follow-up',
+    'The note covers the current medication and the lab order for the next visit.',
+    'Take the medication in the morning and complete the lab draw before the next visit.',
+    'No medication changes were recorded at this visit.',
+    'Complete the lab draw and keep the next appointment.'
+  ),
+  (
+    5, 9, 'Annual visit',
+    'The note covers routine vitals and the current medication list.',
+    'Continue the medications already on your list.',
+    'No medication changes were recorded at this visit.',
+    'Return in one year.'
+  ),
+  (
+    6, 10, 'Blood pressure check',
+    'The note covers the home blood pressure log reviewed at the clinic.',
+    'Keep logging your blood pressure each morning.',
+    'No medication changes were recorded at this visit.',
+    'Keep the follow-up visit on the calendar.'
+  );
+
+INSERT INTO follow_up_tasks (
+  id, patient_id, visit_summary_id, title, details, task_type, due_at, status, priority, completed_at
+) VALUES
+  (
+    8, 4, 4, 'Complete lab draw',
+    'Go to the main lab for the tests ordered at the last visit.',
+    'lab', date('now', 'localtime', '+5 days'), 'open', 'high', NULL
+  ),
+  (
+    9, 4, 4, 'Pick up prescription',
+    'The refill is ready at your pharmacy.',
+    'medication', date('now', 'localtime', '-3 days'), 'open', 'normal', NULL
+  ),
+  (
+    10, 5, 6, 'Bring home blood pressure log',
+    'Bring the log to the follow-up cardiology visit.',
+    'general', date('now', 'localtime', '-6 days'), 'complete', 'normal',
+    datetime('now', 'localtime', '-8 days')
+  ),
+  (
+    11, 5, 5, 'Read visit instructions',
+    'Read the instructions on the annual visit summary.',
+    'general', date('now', 'localtime', '-20 days'), 'complete', 'low',
+    datetime('now', 'localtime', '-22 days')
+  );
+
+INSERT INTO messages (id, patient_id, provider_id, subject, body, sent_at, read_at, status) VALUES
+  (
+    6, 4, 3, 'Visit follow-up',
+    'A note from your thyroid follow-up is available on the overview page.',
+    datetime('now', 'localtime', '-2 days'), NULL, 'unread'
+  ),
+  (
+    7, 4, 5, 'Lab prep instructions',
+    'The lab draw is scheduled. Your appointment page lists the time and what to bring.',
+    datetime('now', 'localtime', '-1 days'), NULL, 'unread'
+  ),
+  (
+    8, 5, 1, 'Visit summary available',
+    'The summary from your annual visit is ready on the overview page.',
+    datetime('now', 'localtime', '-24 days'),
+    datetime('now', 'localtime', '-23 days'),
+    'read'
+  ),
+  (
+    9, 5, 2, 'Follow-up visit scheduled',
+    'Your follow-up cardiology visit is on the calendar.',
+    datetime('now', 'localtime', '-9 days'),
+    datetime('now', 'localtime', '-8 days'),
+    'read'
+  );
+
+INSERT INTO test_results (
+  id, patient_id, provider_id, test_name, category, collected_at, released_at, status, value_summary, reviewed_at
+) VALUES
+  (
+    5, 4, 3, 'Thyroid panel', 'lab',
+    datetime('now', 'localtime', '-3 days'),
+    datetime('now', 'localtime', '-1 days'),
+    'new',
+    'The care team released this result. The portal stores the summary only and does not add an interpretation.',
+    NULL
+  ),
+  (
+    6, 4, 1, 'Vitamin D level', 'lab',
+    datetime('now', 'localtime', '-40 days'),
+    datetime('now', 'localtime', '-38 days'),
+    'reviewed',
+    'The care team released this result. The portal stores the summary only and does not add an interpretation.',
+    datetime('now', 'localtime', '-37 days')
+  ),
+  (
+    7, 5, 2, 'Basic metabolic panel', 'lab',
+    datetime('now', 'localtime', '-12 days'),
+    datetime('now', 'localtime', '-10 days'),
+    'reviewed',
+    'The care team released this result. The portal stores the summary only and does not add an interpretation.',
+    datetime('now', 'localtime', '-9 days')
+  );
+
+INSERT INTO medications (id, patient_id, name, dosage, frequency, started_at, status) VALUES
+  (8, 4, 'Levothyroxine', '50 mcg', 'Once daily', date('now', 'localtime', '-300 days'), 'active'),
+  (9, 4, 'Vitamin D', '2000 IU', 'Once daily', date('now', 'localtime', '-45 days'), 'active'),
+  (10, 5, 'Amlodipine', '5 mg', 'Once daily', date('now', 'localtime', '-600 days'), 'active'),
+  (11, 5, 'Aspirin', '81 mg', 'Once daily', date('now', 'localtime', '-700 days'), 'active');
+
+INSERT INTO prescriptions (
+  id, medication_id, provider_id, pharmacy, refills_remaining, last_filled_at, next_refill_at, status
+) VALUES
+  (
+    5, 8, 3, 'Northside Pharmacy', 0,
+    date('now', 'localtime', '-30 days'),
+    date('now', 'localtime', '-1 days'),
+    'refill_due'
+  ),
+  (
+    6, 9, 1, 'Northside Pharmacy', 2,
+    date('now', 'localtime', '-10 days'),
+    date('now', 'localtime', '+35 days'),
+    'active'
+  ),
+  (
+    7, 10, 2, 'River City Pharmacy', 4,
+    date('now', 'localtime', '-15 days'),
+    date('now', 'localtime', '+45 days'),
+    'active'
+  ),
+  (
+    8, 11, 1, 'River City Pharmacy', 3,
+    date('now', 'localtime', '-5 days'),
+    date('now', 'localtime', '+60 days'),
+    'active'
+  );
+
+INSERT INTO referrals (
+  id, patient_id, provider_id, department_id, reason, status, created_at, expires_at
+) VALUES
+  (
+    5, 4, 3, 5, 'Laboratory work', 'pending',
+    datetime('now', 'localtime', '-12 days'),
+    date('now', 'localtime', '+30 days')
+  );
+
+INSERT INTO notifications (
+  id, patient_id, source_type, source_id, title, body, severity, status, created_at
+) VALUES
+  (
+    6, 4, 'message', 6, 'Unread message',
+    'You have a message from Naomi Brooks.',
+    'info', 'open', datetime('now', 'localtime', '-2 days')
+  ),
+  (
+    7, 4, 'test_result', 5, 'New test result',
+    'A thyroid panel result is ready to review.',
+    'info', 'open', datetime('now', 'localtime', '-1 days')
+  ),
+  (
+    8, 4, 'task', 9, 'Overdue task',
+    'Pick up prescription is past the due date.',
+    'info', 'open', datetime('now', 'localtime', '-1 days')
+  );

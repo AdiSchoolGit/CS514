@@ -11,7 +11,7 @@ Care Overview is a CS 514 database project built around a fictional patient port
 - View test results and mark them as reviewed
 - View current medications
 - Add and cancel appointments
-- Add, complete, and delete tasks
+- Add, complete, and delete tasksgit 
 - Update dashboard counts after changes
 
 ## Technology

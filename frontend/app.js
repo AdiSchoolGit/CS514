@@ -1,6 +1,8 @@
+//use the backend when available. otherwise, run with local demo data
 const apiBase = window.CARE_OVERVIEW_API_BASE || "";
 const storeKey = "care-overview-demo-state";
 
+//fictional records used by the standalone front demo 
 const seed = {
   patients: [
     {
@@ -95,11 +97,13 @@ const seed = {
   ]
 };
 
+//track selected patient, current page, and temporary messages
 let state = loadState();
 let activePatientId = state.patients[0].id;
 let activeView = "overview";
 let toastTimer;
 
+//store references to the page elements used by the javascript code
 const el = {
   patientSelect: document.querySelector("#patient-select"),
   patientName: document.querySelector("#patient-name"),
@@ -127,6 +131,7 @@ const el = {
   toast: document.querySelector("#toast")
 };
 
+//load and save data through the backend or browser local storage
 const api = {
   async getData() {
     if (apiBase) {
@@ -152,6 +157,7 @@ const api = {
   }
 };
 
+//smaller helper functions for finding records and formatting values
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
 }
@@ -236,6 +242,7 @@ function itemTemplate(title, detail, meta, status, actions = "") {
   `;
 }
 
+//calculate the counts shown on the dashboard
 function overviewCounts() {
   const tasks = patientItems(state.tasks).filter((task) => task.status === "open");
   const messages = patientItems(state.messages).filter((message) => message.status === "unread");
@@ -261,6 +268,7 @@ function nextAppointment() {
     .sort((a, b) => new Date(a.startsAt) - new Date(b.startsAt))[0];
 }
 
+//render functions update the page using the current state
 function renderPatientPicker() {
   el.patientSelect.innerHTML = state.patients.map((patient) => {
     const name = `${patient.firstName} ${patient.lastName}`;
@@ -611,6 +619,7 @@ async function resetDemo() {
   showToast("Demo data reset.");
 }
 
+//connect buttons, forms, and navigation items to their actions
 document.addEventListener("click", (event) => {
   const actionNode = event.target.closest("[data-action]");
   const jumpNode = event.target.closest("[data-jump]");
@@ -637,6 +646,7 @@ el.taskForm.addEventListener("submit", addTask);
 el.appointmentForm.addEventListener("submit", addAppointment);
 document.querySelector("#reset-demo").addEventListener("click", resetDemo);
 
+//load intitial data when the page opens
 api.getData()
   .then((data) => {
     state = data;

@@ -1,3 +1,4 @@
+--sample departments used by the fictional care team
 INSERT INTO departments (id, name, phone) VALUES
   (1, 'Family Medicine', '555-0101'),
   (2, 'Cardiology', '555-0102'),
@@ -5,6 +6,7 @@ INSERT INTO departments (id, name, phone) VALUES
   (4, 'Rehabilitation', '555-0104'),
   (5, 'Laboratory', '555-0105');
 
+--providers connected to each department
 INSERT INTO providers (id, department_id, full_name, role, specialty) VALUES
   (1, 1, 'Amira Patel', 'Physician', 'Family Medicine'),
   (2, 2, 'Luis Ortega', 'Physician', 'Cardiology'),
@@ -12,11 +14,13 @@ INSERT INTO providers (id, department_id, full_name, role, specialty) VALUES
   (4, 4, 'Jordan Kim', 'Physical Therapist', 'Rehabilitation'),
   (5, 5, 'Riley Nguyen', 'Clinical Lab Scientist', 'Laboratory');
 
+--fictional patient records used for testing and demos
 INSERT INTO patients (id, first_name, last_name, dob, email, phone) VALUES
   (1, 'Maya', 'Chen', '1988-04-12', 'maya.chen@example.com', '555-0142'),
   (2, 'Jordan', 'Hale', '2001-11-03', 'jordan.hale@example.com', '555-0177'),
   (3, 'Elena', 'Vasquez', '1956-07-22', 'elena.vasquez@example.com', '555-0194');
 
+--past and upcoming appointments for sample patients
 INSERT INTO appointments (
   id, patient_id, provider_id, department_id, starts_at, visit_type, location, reason, status, check_in_status, prep_notes
 ) VALUES
@@ -54,6 +58,7 @@ INSERT INTO appointments (
     'Bring the home blood pressure log.'
   );
 
+--summaries connected to complete appointments
 INSERT INTO visit_summaries (
   id, appointment_id, reason, summary, instructions, medication_changes, follow_up_plan
 ) VALUES
@@ -79,6 +84,7 @@ INSERT INTO visit_summaries (
     'Keep the therapy schedule already on file.'
   );
 
+--open and complete tasks shown on the dashboard
 INSERT INTO follow_up_tasks (
   id, patient_id, visit_summary_id, title, details, task_type, due_at, status, priority, completed_at
 ) VALUES
@@ -119,6 +125,7 @@ INSERT INTO follow_up_tasks (
     'appointment', date('now', 'localtime', '+18 days'), 'open', 'low', NULL
   );
 
+--messsages with both unread and read examples
 INSERT INTO messages (id, patient_id, provider_id, subject, body, sent_at, read_at, status) VALUES
   (
     1, 1, 1, 'Lab visit reminder',
@@ -150,6 +157,7 @@ INSERT INTO messages (id, patient_id, provider_id, subject, body, sent_at, read_
     'read'
   );
 
+--test results used to demo new and reviewed statuses
 INSERT INTO test_results (
   id, patient_id, provider_id, test_name, category, collected_at, released_at, status, value_summary, reviewed_at
 ) VALUES
@@ -186,6 +194,7 @@ INSERT INTO test_results (
     datetime('now', 'localtime', '-28 days')
   );
 
+--medication records for the sample patients
 INSERT INTO medications (id, patient_id, name, dosage, frequency, started_at, status) VALUES
   (1, 1, 'Lisinopril', '10 mg', 'Once daily', date('now', 'localtime', '-400 days'), 'active'),
   (2, 1, 'Atorvastatin', '20 mg', 'Nightly', date('now', 'localtime', '-200 days'), 'active'),
@@ -195,6 +204,7 @@ INSERT INTO medications (id, patient_id, name, dosage, frequency, started_at, st
   (6, 3, 'Metoprolol', '25 mg', 'Twice daily', date('now', 'localtime', '-300 days'), 'active'),
   (7, 3, 'Ibuprofen', '200 mg', 'As needed', date('now', 'localtime', '-20 days'), 'stopped');
 
+--prescriptions and refill info connected to the medications
 INSERT INTO prescriptions (
   id, medication_id, provider_id, pharmacy, refills_remaining, last_filled_at, next_refill_at, status
 ) VALUES
@@ -223,6 +233,7 @@ INSERT INTO prescriptions (
     'refill_due'
   );
 
+--sample referrals with different statuses and expiration dates
 INSERT INTO referrals (
   id, patient_id, provider_id, department_id, reason, status, created_at, expires_at
 ) VALUES
@@ -247,6 +258,7 @@ INSERT INTO referrals (
     date('now', 'localtime', '+50 days')
   );
 
+--dashboard notifications created from sample events
 INSERT INTO notifications (
   id, patient_id, source_type, source_id, title, body, severity, status, created_at
 ) VALUES
@@ -276,6 +288,7 @@ INSERT INTO notifications (
     'info', 'open', datetime('now', 'localtime', '-2 days')
   );
 
+--shortcut links shown on the dashboard
 INSERT INTO quick_access_items (id, label, path, sort_order, is_active) VALUES
   (1, 'Schedule appointment', '/appointments/{patient_id}', 1, 1),
   (2, 'Message provider', '/messages/{patient_id}', 2, 1),

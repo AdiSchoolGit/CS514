@@ -1,3 +1,5 @@
+"""Database helpers for the Care Overview application"""
+
 import os
 import sqlite3
 from datetime import date, datetime
@@ -8,7 +10,7 @@ from flask import g
 ROOT = Path(__file__).resolve().parent
 DEFAULT_DB = ROOT / "care_overview.db"
 
-
+#create a fresh database using the schema and sample data files
 def init_db(db_path, quiet=False):
     if os.path.exists(db_path):
         os.remove(db_path)
@@ -28,7 +30,7 @@ def init_db(db_path, quiet=False):
     if not quiet:
         print(f"Database ready at {db_path} with {count} patients.")
 
-
+#open one database connection for the current Flask request
 def connect(path):
     if "db" not in g:
         conn = sqlite3.connect(path)
@@ -38,7 +40,7 @@ def connect(path):
         g.db = conn
     return g.db
 
-
+#close the request's database connection when the request is finished
 def close(_exc=None):
     conn = g.pop("db", None)
     if conn is not None:
@@ -48,7 +50,7 @@ def close(_exc=None):
 def get_db():
     return g.db
 
-
+#these helpers keep database reads consistent throughout the application
 def fetch_all(sql, params=()):
     rows = get_db().execute(sql, params).fetchall()
     return [dict(row) for row in rows]
@@ -64,6 +66,7 @@ def fetch_one(sql, params=()):
 def execute(sql, params=()):
     conn = get_db()
     try:
+        #write operations use a transaction so failures can be rolled back
         conn.execute("BEGIN IMMEDIATE")
         cursor = conn.execute(sql, params)
         conn.commit()
@@ -72,20 +75,20 @@ def execute(sql, params=()):
         conn.rollback()
         raise
 
-
+#calculate the patient's age and account for whether their birthday passed
 def age_from_dob(dob):
     born = datetime.strptime(dob, "%Y-%m-%d").date()
     today = date.today()
     return today.year - born.year - ((today.month, today.day) < (born.month, born.day))
 
-
+#add display-friendly patient information without changing the database row
 def with_age(patient):
     data = dict(patient)
     data["name"] = f"{data['first_name']} {data['last_name']}"
     data["age"] = age_from_dob(data["dob"])
     return data
 
-
+#the overview view provides the counts shown beside each patient
 def list_patients():
     rows = fetch_all(
         """
@@ -240,6 +243,7 @@ def complete_task(task_id):
         return None, "missing"
     if task["status"] != "open":
         return task, "already"
+    #SQL status check prevents an already-completed task from changing again
     execute(
         """
         UPDATE follow_up_tasks
@@ -424,6 +428,7 @@ def review_result(result_id):
     conn = get_db()
     task_created = False
     try:
+        #reviewing a result updates several tables so all changes stay together
         conn.execute("BEGIN IMMEDIATE")
         notice = conn.execute(
             """
@@ -553,6 +558,7 @@ def quick_links(patient_id):
         """
     )
     links = []
+    #replace placeholder with the patient selected in the dashboard
     for row in rows:
         links.append(
             {

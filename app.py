@@ -1,3 +1,5 @@
+"""Flask routes and helper functions for the care overview app"""
+
 import os
 import sqlite3
 from datetime import datetime
@@ -6,6 +8,7 @@ from flask import Flask, abort, flash, jsonify, redirect, render_template, reque
 
 import db
 
+#shown to users for database status values
 LABELS = {
     "scheduled": "Scheduled",
     "completed": "Completed",
@@ -52,7 +55,7 @@ KNOWN_MISSING = {
     "Result not found.",
 }
 
-
+#small helpers for cleaning and checking form input
 def clean(value):
     return (value or "").strip()
 
@@ -120,14 +123,18 @@ PRIORITY_RANK = {"high": 0, "normal": 1, "low": 2}
 def plural(count, word):
     return f"{count} {word}" if count == 1 else f"{count} {word}s"
 
-
+#put overdue and high-priority tasks first on the dashboard
 def rank_tasks(tasks):
     return sorted(
         tasks,
-        key=lambda t: (not t["is_overdue"], PRIORITY_RANK.get(t["priority"], 1), t["due_at"] or ""),
+        key=lambda task: (
+            not task["is_overdue"],
+            PRIORITY_RANK.get(task["priority"], 1),
+            task["due_at"] or "",
+        ),
     )
 
-
+#choose the most important item to show as the patient's focus on the dashboard
 def pick_focus(patient_id, ranked_tasks):
     top = ranked_tasks[0] if ranked_tasks else None
     if top and (top["is_overdue"] or top["priority"] == "high"):
@@ -167,7 +174,7 @@ def task_focus(task):
         "url": url_for("complete_task", task_id=task["id"]),
     }
 
-
+#turn the dashboard counts into a short summary sentence
 def attention_sentence(overview):
     parts = []
     if overview["open_task_count"]:
@@ -228,7 +235,7 @@ def show_tasks(patient, errors=None, form=None, status_code=200):
         status_code,
     )
 
-
+#build the Flask app and register routes and filters  
 def create_app(db_path=None):
     path = str(db_path or db.DEFAULT_DB)
     if not os.path.exists(path):
@@ -259,6 +266,7 @@ def create_app(db_path=None):
             message = "That page does not exist."
         return render_template("error.html", message=message), 404
 
+    #patient selection and dashboard pages
     @app.get("/")
     def home():
         return render_template("patients.html", patients=db.list_patients())
@@ -280,12 +288,13 @@ def create_app(db_path=None):
             overview=overview,
             summary=attention_sentence(overview),
             focus=focus,
-            later_tasks=[t for t in ranked if t["id"] != focus_task_id],
+            later_tasks=[task for task in ranked if task["id"] != focus_task_id],
             recent_visit=db.recent_visit(patient_id),
             upcoming=db.upcoming_appointment(patient_id),
             referrals=db.active_referrals(patient_id),
         )
 
+    #appointments and tasks pages
     @app.get("/appointments/<int:patient_id>")
     def appointments(patient_id):
         patient = require_patient(patient_id)
@@ -358,6 +367,7 @@ def create_app(db_path=None):
             flash("Appointment cancelled.", "success")
         return redirect(url_for("appointments", patient_id=appointment["patient_id"]))
 
+    #follow-up tasks and messages pages
     @app.get("/tasks/<int:patient_id>")
     def tasks(patient_id):
         patient = require_patient(patient_id)
@@ -435,6 +445,7 @@ def create_app(db_path=None):
         flash("Task deleted.", "success")
         return redirect(url_for("tasks", patient_id=task["patient_id"]))
 
+    #message pages and message actions
     @app.get("/messages/<int:patient_id>")
     def messages(patient_id):
         patient = require_patient(patient_id)
@@ -455,6 +466,7 @@ def create_app(db_path=None):
             flash("Message marked read.", "success")
         return redirect(url_for("messages", patient_id=message["patient_id"]))
 
+    #result pages and review actions
     @app.get("/results/<int:patient_id>")
     def results(patient_id):
         patient = require_patient(patient_id)
@@ -482,6 +494,7 @@ def create_app(db_path=None):
             flash("Result marked reviewed.", "success")
         return redirect(url_for("results", patient_id=outcome["patient_id"]))
 
+    #medications page
     @app.get("/medications/<int:patient_id>")
     def medications(patient_id):
         patient = require_patient(patient_id)
@@ -491,6 +504,7 @@ def create_app(db_path=None):
             medications=db.list_medications(patient_id),
         )
 
+    #JSON endpoint used to return dashboard data
     @app.get("/api/care-overview/<int:patient_id>")
     def care_overview_api(patient_id):
         if db.get_patient(patient_id) is None:

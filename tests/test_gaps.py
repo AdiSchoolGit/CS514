@@ -11,7 +11,7 @@ def test_get_patients_lists_all_seeded_patients(app):
         db.connect(app.config["DB_PATH"])
         patients = db.list_patients()
         db.close()
-    assert len(patients) == 5
+    assert len(patients) == 6
     assert all({"id", "first_name", "last_name", "dob"} <= set(patient) for patient in patients)
 
 

@@ -498,3 +498,141 @@ INSERT INTO notifications (
     'Pick up prescription is past the due date.',
     'info', 'open', datetime('now', 'localtime', '-1 days')
   );
+
+INSERT INTO patients (id, first_name, last_name, dob, email, phone) VALUES
+  (6, 'Graham', 'Abbott', '1979-06-24', 'graham.abbott@example.com', '555-0256');
+
+INSERT INTO appointments (
+  id, patient_id, provider_id, department_id, starts_at, visit_type, location, reason, status, check_in_status, prep_notes
+) VALUES
+  (
+    12, 6, 1, 1,
+    datetime('now', 'localtime', '-14 days', 'start of day', '+9 hours'),
+    'office', 'Clinic Room 3', 'Annual visit', 'completed', 'complete', NULL
+  ),
+  (
+    13, 6, 2, 2,
+    datetime('now', 'localtime', '+4 days', 'start of day', '+14 hours'),
+    'office', 'Heart Clinic Room 1', 'Cardiology follow-up', 'scheduled', 'available',
+    'Bring your medication list and home blood pressure log.'
+  );
+
+INSERT INTO visit_summaries (
+  id, appointment_id, reason, summary, instructions, medication_changes, follow_up_plan
+) VALUES
+  (
+    7, 12, 'Annual visit',
+    'The note covers routine vitals, the medication list, and several follow-up items.',
+    'Complete the lab work, return the forms, and book the follow-up visits listed in your tasks.',
+    'The refill for the blood pressure medication was updated.',
+    'Work through the open tasks before the cardiology visit.'
+  );
+
+INSERT INTO follow_up_tasks (
+  id, patient_id, visit_summary_id, title, details, task_type, due_at, status, priority, completed_at
+) VALUES
+  (
+    12, 6, 7, 'Schedule cardiology follow-up',
+    'Choose a time that works for the follow-up visit.',
+    'appointment', date('now', 'localtime', '-5 days'), 'open', 'high', NULL
+  ),
+  (
+    13, 6, 7, 'Complete fasting lab work',
+    'Go to the main lab with nothing to eat or drink except water.',
+    'lab', date('now', 'localtime', '+2 days'), 'open', 'high', NULL
+  ),
+  (
+    14, 6, 7, 'Refill blood pressure medication',
+    'The updated refill is ready to request.',
+    'medication', date('now', 'localtime', '-2 days'), 'open', 'high', NULL
+  ),
+  (
+    15, 6, 7, 'Return signed consent form',
+    'The form was sent with the visit summary.',
+    'general', date('now', 'localtime', '-9 days'), 'open', 'normal', NULL
+  ),
+  (
+    16, 6, NULL, 'Update insurance information',
+    'Check that the insurance details on file are current.',
+    'general', date('now', 'localtime', '+6 days'), 'open', 'normal', NULL
+  ),
+  (
+    17, 6, 7, 'Book physical therapy evaluation',
+    'The referral is ready to schedule.',
+    'referral', date('now', 'localtime', '+10 days'), 'open', 'normal', NULL
+  ),
+  (
+    18, 6, 7, 'Review new medication instructions',
+    'Read the updated instructions in the visit summary.',
+    'medication', date('now', 'localtime', '+3 days'), 'open', 'normal', NULL
+  ),
+  (
+    19, 6, NULL, 'Complete pre-visit questionnaire',
+    'The form is available before the cardiology visit.',
+    'general', date('now', 'localtime', '+4 days'), 'open', 'low', NULL
+  ),
+  (
+    20, 6, 7, 'Send home blood pressure log',
+    'Upload or bring the log to the cardiology visit.',
+    'general', date('now', 'localtime', '+8 days'), 'open', 'low', NULL
+  );
+
+INSERT INTO messages (id, patient_id, provider_id, subject, body, sent_at, read_at, status) VALUES
+  (
+    10, 6, 1, 'Lab order ready',
+    'The lab order from your annual visit is ready. Your task list has the details.',
+    datetime('now', 'localtime', '-3 days'), NULL, 'unread'
+  ),
+  (
+    11, 6, 2, 'Follow-up visit',
+    'Your cardiology follow-up is on the calendar.',
+    datetime('now', 'localtime', '-1 days'), NULL, 'unread'
+  );
+
+INSERT INTO test_results (
+  id, patient_id, provider_id, test_name, category, collected_at, released_at, status, value_summary, reviewed_at
+) VALUES
+  (
+    8, 6, 1, 'Lipid panel', 'lab',
+    datetime('now', 'localtime', '-13 days'),
+    datetime('now', 'localtime', '-10 days'),
+    'new',
+    'The care team released this result. The portal stores the summary only and does not add an interpretation.',
+    NULL
+  );
+
+INSERT INTO medications (id, patient_id, name, dosage, frequency, started_at, status) VALUES
+  (12, 6, 'Lisinopril', '10 mg', 'Once daily', date('now', 'localtime', '-500 days'), 'active');
+
+INSERT INTO prescriptions (
+  id, medication_id, provider_id, pharmacy, refills_remaining, last_filled_at, next_refill_at, status
+) VALUES
+  (
+    9, 12, 2, 'River City Pharmacy', 0,
+    date('now', 'localtime', '-32 days'),
+    date('now', 'localtime', '-2 days'),
+    'refill_due'
+  );
+
+INSERT INTO referrals (
+  id, patient_id, provider_id, department_id, reason, status, created_at, expires_at
+) VALUES
+  (
+    6, 6, 1, 4, 'Physical therapy evaluation', 'pending',
+    datetime('now', 'localtime', '-14 days'),
+    date('now', 'localtime', '+45 days')
+  );
+
+INSERT INTO notifications (
+  id, patient_id, source_type, source_id, title, body, severity, status, created_at
+) VALUES
+  (
+    9, 6, 'message', 10, 'Unread message',
+    'You have a message from Amira Patel.',
+    'info', 'open', datetime('now', 'localtime', '-3 days')
+  ),
+  (
+    10, 6, 'test_result', 8, 'New test result',
+    'A lipid panel result is ready to review.',
+    'info', 'open', datetime('now', 'localtime', '-10 days')
+  );

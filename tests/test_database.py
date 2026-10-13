@@ -10,7 +10,7 @@ def test_seed_loads(app):
     conn = connect(app)
     count = conn.execute("SELECT COUNT(*) FROM patients").fetchone()[0]
     conn.close()
-    assert count == 5
+    assert count == 6
 
 
 def test_foreign_keys_enforced(app):

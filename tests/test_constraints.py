@@ -31,7 +31,7 @@ def test_tables_and_seed_exist(app):
         "notifications",
         "quick_access_items",
     } <= tables
-    assert patient_count == 5
+    assert patient_count == 6
 
     conn = connect(app)
     view = conn.execute(

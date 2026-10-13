@@ -1,5 +1,4 @@
--- Recent visit: join appointments, visit summaries, providers, and departments.
--- Returns the most recent completed visit for one patient.
+-- gets patient's most recent completed visit. this joins the visit with its provider, department, and summary
 SELECT
   a.id,
   a.starts_at,
@@ -23,7 +22,7 @@ WHERE a.patient_id = ?
 ORDER BY a.starts_at DESC
 LIMIT 1;
 
--- Upcoming appointment: subquery filters to appointments after the current time.
+-- find patient's next scheduled appointment. cancelled and past appointments are left out
 SELECT
   a.id,
   a.starts_at,
@@ -44,7 +43,7 @@ WHERE a.patient_id = ?
 ORDER BY a.starts_at ASC
 LIMIT 1;
 
--- Important updates: aggregate counts from care_overview_view.
+-- get dashboard counts for one patient. these counts come from the care overview view
 SELECT
   patient_id,
   patient_name,
@@ -58,14 +57,14 @@ SELECT
 FROM care_overview_view
 WHERE patient_id = ?;
 
--- Task priority: group open tasks by priority.
+-- count the patient's open tasks by priority
 SELECT priority, COUNT(*) AS task_count
 FROM follow_up_tasks
 WHERE patient_id = ? AND status = 'open'
 GROUP BY priority
 ORDER BY CASE priority WHEN 'high' THEN 0 WHEN 'normal' THEN 1 ELSE 2 END;
 
--- Medication refill: join medications, prescriptions, and providers.
+-- show medications together with refill and provider info
 SELECT
   m.name,
   m.dosage,
@@ -83,9 +82,8 @@ LEFT JOIN providers pv ON pv.id = pr.provider_id
 WHERE m.patient_id = ?
 ORDER BY CASE m.status WHEN 'active' THEN 0 WHEN 'paused' THEN 1 ELSE 2 END, m.name;
 
--- Review result transaction.
--- Run these statements in one transaction and roll back if any step fails.
--- Insert the follow-up task only when the related notification severity is warning or high.
+-- review test result and update its related notification. 
+-- these statements run in one transaction and if one step fails, the database should roll back the changes
 UPDATE test_results
 SET status = 'reviewed', reviewed_at = datetime('now', 'localtime')
 WHERE id = ? AND status = 'new';

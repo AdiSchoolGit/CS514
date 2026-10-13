@@ -1,5 +1,8 @@
+-- turn on foreign key checks for this database connection
+
 PRAGMA foreign_keys = ON;
 
+--main patient and provider info
 CREATE TABLE patients (
   id INTEGER PRIMARY KEY,
   first_name TEXT NOT NULL,
@@ -24,6 +27,7 @@ CREATE TABLE providers (
   specialty TEXT
 );
 
+--appointments, visit summaries, and follow-up tasks
 CREATE TABLE appointments (
   id INTEGER PRIMARY KEY,
   patient_id INTEGER NOT NULL REFERENCES patients(id),
@@ -50,6 +54,7 @@ CREATE TABLE visit_summaries (
   created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
 );
 
+--tasks created for a patient's follow-up care
 CREATE TABLE follow_up_tasks (
   id INTEGER PRIMARY KEY,
   patient_id INTEGER NOT NULL REFERENCES patients(id),
@@ -64,6 +69,7 @@ CREATE TABLE follow_up_tasks (
   created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
 );
 
+--patient messages and test results
 CREATE TABLE messages (
   id INTEGER PRIMARY KEY,
   patient_id INTEGER NOT NULL REFERENCES patients(id),
@@ -88,6 +94,7 @@ CREATE TABLE test_results (
   reviewed_at TEXT
 );
 
+--medications and prescription info
 CREATE TABLE medications (
   id INTEGER PRIMARY KEY,
   patient_id INTEGER NOT NULL REFERENCES patients(id),
@@ -109,6 +116,7 @@ CREATE TABLE prescriptions (
   status TEXT NOT NULL CHECK (status IN ('active', 'refill_due', 'expired'))
 );
 
+--referrals, notifications, and dashboard shortcuts
 CREATE TABLE referrals (
   id INTEGER PRIMARY KEY,
   patient_id INTEGER NOT NULL REFERENCES patients(id),
@@ -141,6 +149,7 @@ CREATE TABLE quick_access_items (
   is_active INTEGER NOT NULL CHECK (is_active IN (0, 1))
 );
 
+--indexes help the most common patients searches run faster
 CREATE INDEX idx_appointments_patient_starts ON appointments(patient_id, starts_at);
 CREATE INDEX idx_appointments_patient_status ON appointments(patient_id, status);
 CREATE INDEX idx_tasks_patient_status_due ON follow_up_tasks(patient_id, status, due_at);
@@ -151,6 +160,7 @@ CREATE INDEX idx_prescriptions_status_refill ON prescriptions(status, next_refil
 CREATE INDEX idx_referrals_patient_status ON referrals(patient_id, status);
 CREATE INDEX idx_notifications_patient_status_created ON notifications(patient_id, status, created_at);
 
+--combines important counts and appointment info for the dashboard
 CREATE VIEW care_overview_view AS
 SELECT
   p.id AS patient_id,
